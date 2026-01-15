@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.dipdev.themutemaster.ui.components.AppLogo
 
 @Composable
-fun HomeScreen(modifier: Modifier= Modifier) {
+fun Home(modifier: Modifier= Modifier) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -68,7 +68,6 @@ fun HomeScreen(modifier: Modifier= Modifier) {
         Spacer(modifier = Modifier.height(24.dp))
 
         // 4. Bottom Action Buttons
-        BottomActionButtons()
     }
 }
 
@@ -163,36 +162,7 @@ fun ActionLabel(icon: ImageVector, text: String) {
 }
 
 // --- Component 3: Bottom Buttons ---
-@Composable
-fun BottomActionButtons() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp), // Fixed height for the buttons
-        horizontalArrangement = Arrangement.spacedBy(16.dp) // Gap between buttons
-    ) {
-        // Button 1: Muted Locations
-        BigActionButton(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.LocationOn,
-            text = "Muted\nLocations"
-        )
 
-        // Vertical Divider (Optional, or just spacing)
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .fillMaxHeight()
-        )
-
-        // Button 2: Muted Contacts
-        BigActionButton(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Default.Person,
-            text = "Muted\ncontacts"
-        )
-    }
-}
 
 @Composable
 fun BigActionButton(modifier: Modifier = Modifier, icon: ImageVector, text: String) {

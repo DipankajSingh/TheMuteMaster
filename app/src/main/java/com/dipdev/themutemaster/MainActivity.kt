@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.dipdev.themutemaster.ui.navigation.AppNavHost
 import com.dipdev.themutemaster.ui.screens.permissions.fglocation.ForegroundLocationAccess
 import com.dipdev.themutemaster.ui.screens.permissions.fglocation.ForegroundLocationAccessViewModel
+import com.dipdev.themutemaster.ui.screens.savedLocations.SavedLocationsScreen
 import com.dipdev.themutemaster.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,6 +27,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Surface(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding().padding(10.dp)){
                     Scaffold {padVal->
+                        //AppNavHost(modifier = Modifier.padding(padVal))
                         AppNavHost(modifier = Modifier.padding(padVal))
                     }
                 }

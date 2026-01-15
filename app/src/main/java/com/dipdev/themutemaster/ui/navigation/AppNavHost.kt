@@ -10,7 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.dipdev.themutemaster.ui.navigation.navGraph.permissionGraph
-import com.dipdev.themutemaster.ui.screens.home.HomeScreen
+import com.dipdev.themutemaster.ui.screens.mainScreenNavHost.MainScreenNavHost
 
 // AppNavHost.kt
 @Composable
@@ -39,9 +39,8 @@ fun AppNavHost(
         // 2. The Main App Graph (Your actual app)
         navigation(startDestination = "home", route = "main_app_graph") {
             composable("home") {
-                HomeScreen()
+                MainScreenNavHost()
             }
-            // ... other app screens ...
         }
     }
 }

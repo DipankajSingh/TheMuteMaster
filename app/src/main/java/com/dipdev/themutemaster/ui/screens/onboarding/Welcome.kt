@@ -31,7 +31,7 @@ fun Welcome(modifier: Modifier= Modifier){
         Spacer(Modifier.height(30.dp))
         AppLogo()
         Image(
-            painter = painterResource(R.drawable.hero3),
+            painter = painterResource(R.drawable.appicon),
             contentDescription = "hero image",
             modifier= Modifier.weight(3f)
         )
