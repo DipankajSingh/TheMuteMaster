@@ -1,73 +1,168 @@
 package com.dipdev.themutemaster.ui.screens.home
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.ChecklistRtl
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.SpatialAudio
+import androidx.compose.material.icons.outlined.PinDrop
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dipdev.themutemaster.ui.components.AppLogo
+import com.dipdev.themutemaster.utils.copyToClipboard
+
 
 @Composable
-fun Home(modifier: Modifier= Modifier) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-           // Matches image background
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 1. Top Bar
-        TopHeader()
+fun Home(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToManage: (String) -> Unit
+) {
+    val context = LocalContext.current
 
-        Spacer(modifier = Modifier.height(32.dp))
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (isGranted) {
+            viewModel.fetchLocation()
+        } else {
+            viewModel.onPermissionDenied()
+        }
+    }
 
-        // 2. The Switch (Placeholder for your custom canvas work)
-        Box(
+    LaunchedEffect(Unit) {
+        val hasFine = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasFine) {
+            viewModel.fetchLocation()
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        topBar = { TopHeader() }
+    ) { paddingValues ->
+
+        Column(
             modifier = Modifier
-                .weight(1f) // Takes up available vertical space to center itself
-                .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // REPLACE THIS with your Custom Canvas Switch
-            // I put a placeholder circle here just to hold the space
+
+            // The Switch (Your Custom Circle Container)
+            // Left exactly as you requested
             Box(
-                modifier = Modifier
-                    .size(250.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
+                modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Settings, // Power icon usually
-                    contentDescription = "Switch",
-                    modifier = Modifier.size(64.dp),
-                )
+                Column(
+                    modifier = Modifier
+                        .size(260.dp) // Slightly larger for modern feel
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.6f),
+                            CircleShape
+                        ),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SpatialAudio,
+                        contentDescription = "Switch",
+                        modifier = Modifier.size(72.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = if (viewModel.isLocationMuted) "Auto-Muting Active" else "Auto-Muting Paused",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
+
+            // --- REFACTORED CARD COMPONENT ---
+            LocationStatusCard(
+                locationText = viewModel.locationText,
+                isSaved = viewModel.isLocationSaved,
+                isActive = viewModel.isLocationMuted, // Assuming 'Muted' means the geofence is active
+                onCopy = {
+                    // Using your util extension
+                    viewModel.locationText?.let { text ->
+                        context.copyToClipboard(text, "Location Address")
+                    }
+                },
+                onPrimaryAction = {
+                    if (!viewModel.isLocationSaved) {
+                        viewModel.saveLocation()
+                    } else {
+                        onNavigateToManage(viewModel.locationId)
+                        //viewModel.locationText = viewModel.locationId
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 3. Location Status Card
-        LocationStatusCard()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 4. Bottom Action Buttons
     }
 }
 
@@ -75,122 +170,184 @@ fun Home(modifier: Modifier= Modifier) {
 @Composable
 fun TopHeader() {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 5.dp, vertical = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AppLogo()
-        }
+        // Placeholder for Logo
+        AppLogo()
 
-        IconButton(onClick = { /* Open Settings */ }) {
+        IconButton(
+            onClick = { /* Open Settings */ },
+            colors = IconButtonDefaults.filledTonalIconButtonColors() // Modern tonal button
+        ) {
             Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = "Settings",
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp),
             )
         }
     }
 }
 
-// --- Component 2: The Gray Status Card ---
+// --- Component 2: The Modern Status Card ---
 @Composable
-fun LocationStatusCard() {
-    Card(
-        shape = RoundedCornerShape(4.dp), // Sharp corners as per image
+fun LocationStatusCard(
+    locationText: String?,
+    isSaved: Boolean,
+    isActive: Boolean,
+    onCopy: () -> Unit,
+    onPrimaryAction: () -> Unit
+) {
+    // Determine colors based on state
+    val statusColor = when {
+        !isSaved -> MaterialTheme.colorScheme.secondary
+        isActive -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.tertiary
+    }
+
+    val statusText = when {
+        !isSaved -> "Not Saved"
+        isActive -> "Active Zone"
+        else -> "Inactive Zone"
+    }
+
+    val statusDescription = when {
+        !isSaved -> "This location is not in your mute list."
+        isActive -> "Your phone is currently muted by this zone."
+        else -> "Location saved, but muting is currently disabled."
+    }
+
+    ElevatedCard(
+        shape = RoundedCornerShape(24.dp), // Modern softer corners
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            // Address Row
-            Row(verticalAlignment = Alignment.Top) {
-                Icon(
-                    imageVector = Icons.Outlined.Home,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                )
+            // -- Row 1: Content --
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                // Icon Bubble
+                Surface(
+                    shape = CircleShape,
+                    color = statusColor.copy(alpha = 0.1f),
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (isSaved) Icons.Default.LocationOn else Icons.Outlined.PinDrop,
+                            contentDescription = null,
+                            tint = statusColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.width(16.dp))
-                Column {
+
+                // Texts
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "17-a, New India Centre, Cooperage Road, Opp Oval Maidan, Council Hall",
+                        text = statusText.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = statusColor,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        lineHeight = 20.sp
+                        letterSpacing = 1.sp
                     )
+
                     Spacer(modifier = Modifier.height(4.dp))
+
                     Text(
-                        text = "This location is not in your mutes list",
-                        fontSize = 14.sp
+                        text = locationText ?: "Locating...",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = statusDescription,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(
+                Modifier,
+                DividerDefaults.Thickness,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Actions Row
+            // -- Row 2: Actions --
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                ActionLabel(icon = Icons.Default.ContentCopy, text = "copy address")
-                ActionLabel(icon = Icons.Default.Edit, text = "Manage this\nLocation")
+                // Secondary Action (Copy)
+                ActionLabel(
+                    icon = Icons.Default.ContentCopy,
+                    text = "Copy Address",
+                    onClick = onCopy
+                )
+
+                // Primary Action (Save/Manage)
+                // Use a proper Button for the main action, or a colored text button
+                FilledTonalButton(
+                    onClick = onPrimaryAction,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Default.Edit else Icons.Default.AddLocation,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = if (isSaved) "Manage" else "Add Zone")
+                }
             }
         }
     }
 }
 
+// --- Component 3: Action Label (Text Button Style) ---
 @Composable
-fun ActionLabel(icon: ImageVector, text: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clickable { /* Handle action */ }
+fun ActionLabel(
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit
+) {
+    TextButton(
+        onClick = onClick,
+        colors = ButtonDefaults.textButtonColors(
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = text,
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            lineHeight = 16.sp
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
-
-// --- Component 3: Bottom Buttons ---
-
-
-@Composable
-fun BigActionButton(modifier: Modifier = Modifier, icon: ImageVector, text: String) {
-    Button(
-        onClick = {},
-        modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start, // Align left inside button
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = text,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp,
-                lineHeight = 18.sp,
-                textAlign = TextAlign.Start
-            )
-        }
-    }
-}
-

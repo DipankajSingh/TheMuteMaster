@@ -1,6 +1,9 @@
 package com.dipdev.themutemaster.ui.navigation
 
-import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -8,39 +11,48 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navigation
+import com.dipdev.themutemaster.ui.navigation.mainScreenNavHost.MainScreenNavHost
 import com.dipdev.themutemaster.ui.navigation.navGraph.permissionGraph
-import com.dipdev.themutemaster.ui.screens.mainScreenNavHost.MainScreenNavHost
 
-// AppNavHost.kt
 @Composable
 fun AppNavHost(
-    modifier: Modifier= Modifier,
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    // Logic to decide where to start (e.g., check sharedPrefs or Permissions)
-    startDestination: String = "permission_graph_root",
+    startDestination: String,
 ) {
-    val ctx=LocalContext.current
-    NavHost(navController = navController, startDestination = startDestination) {
+    val ctx = LocalContext.current
 
-        // 1. The Permission Graph (We plug it in here)
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        // Global Animations for Parent Switches
+        enterTransition = { fadeIn(tween(300)) },
+        exitTransition = { fadeOut(tween(300)) }
+    ) {
+
+        // 1. THE PERMISSION FLOW
         permissionGraph(
             navController = navController,
-            onPermissionsComplete = {
-                // When the entire graph finishes, navigate to the Main App
-                navController.navigate("main_app_graph") {
-                    popUpTo("permission_graph_root") { inclusive = true }
-                }
-            },
             context = ctx,
-            modifier = modifier
+            modifier = modifier,
+            onPermissionsComplete = {
+                // When done, SWAP to the Main App Container
+                navController.navigate(AppRoute.MAIN_APP_CONTAINER) {
+                    popUpTo(AppRoute.PERMISSION_FLOW) { inclusive = true }
+                }
+            }
         )
 
-        // 2. The Main App Graph (Your actual app)
-        navigation(startDestination = "home", route = "main_app_graph") {
-            composable("home") {
-                MainScreenNavHost()
+        // 2. THE MAIN APP CONTAINER
+        // This is a single composable that holds your MainScreenNavHost
+        composable(
+            route = AppRoute.MAIN_APP_CONTAINER,
+            enterTransition = {
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(500))
             }
+        ) {
+            // This composable has its OWN internal NavController and Scaffold
+            MainScreenNavHost()
         }
     }
 }

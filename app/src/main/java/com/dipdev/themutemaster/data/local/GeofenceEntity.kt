@@ -1,0 +1,15 @@
+package com.dipdev.themutemaster.data.local
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "geofences")
+data class GeofenceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int? = null,
+    val latitude: Double,
+    val longitude: Double,
+    val radius: Float = 100f,
+    val isEnabled: Boolean = true,
+    val fullAddress: String? = null,
+    val name: String = "Saved Address"
+)
