@@ -32,8 +32,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocation
 import androidx.compose.material.icons.filled.ContentCopy
@@ -53,7 +55,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,6 +65,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -72,21 +74,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.dipdev.themutemaster.ui.navigation.AppRoute
 import com.dipdev.themutemaster.ui.navigation.LocalRootNavController
-import com.dipdev.themutemaster.ui.screens.onboarding.alpha
 import com.dipdev.themutemaster.utils.copyToClipboard
 
 @Composable
 fun Home(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToManage: (String) -> Unit
+    viewModel: HomeViewModel = hiltViewModel(),onNavigateToManage: (String) -> Unit,
+    criticalError: Boolean,
+    onSettingsClick:()-> Unit
 ) {
     val context = LocalContext.current
     val rootNavController = LocalRootNavController.current
 
-    // --- Permissions ---
+    // --- Permissions Logic (Unchanged) ---
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -116,33 +117,35 @@ fun Home(
         }
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            ModernHeader(
-                onSettingsClick = { rootNavController.navigate(AppRoute.PERMISSION_FLOW) }
-            )
-        }
-    ) { paddingValues ->
-
+    // --- Layout Structure ---
+    Column (
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        // We place the Header at the top
+        ModernHeader(
+            onSettingsClick = { onSettingsClick() },
+            criticalError
+        )
+        Spacer(Modifier.height(32.dp))
+        // Main Content Container
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(0.5f))
 
             // --- PULSE INDICATOR ---
-            // Re-enabled the alpha animation you commented out
             PulseIndicator(
                 isActive = viewModel.isLocationMuted,
                 statusText = if (viewModel.isLocationMuted) "Auto-Muting Active" else "System Paused"
             )
 
-            Spacer(modifier = Modifier.weight(0.5f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // --- STATUS CARD ---
             LocationStatusCard(
@@ -156,7 +159,6 @@ fun Home(
                 },
                 onPrimaryAction = {
                     if (!viewModel.isLocationSaved) {
-                        // CRITICAL FIX: Changed !== (reference check) to != (value check)
                         if (viewModel.currentLatitude != null && viewModel.currentLongitude != null) {
                             viewModel.saveLocation()
                         }
@@ -165,7 +167,6 @@ fun Home(
                     }
                 }
             )
-
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
@@ -173,12 +174,18 @@ fun Home(
 
 // --- 1. MODERN HEADER ---
 @Composable
-fun ModernHeader(onSettingsClick: () -> Unit) {
+fun ModernHeader(onSettingsClick: () -> Unit, criticalError: Boolean) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 24.dp),
+        modifier =
+            if (criticalError){
+                Modifier
+                    .fillMaxWidth()
+            }
+            else{
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+            },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -213,12 +220,11 @@ fun ModernHeader(onSettingsClick: () -> Unit) {
     }
 }
 
-// --- 1.1 APP LOGO COMPONENT (Was missing in your code) ---
 @Composable
 fun AppLogo() {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            imageVector = Icons.Default.GraphicEq, // Sound-wave style icon
+            imageVector = Icons.Default.GraphicEq,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(28.dp)

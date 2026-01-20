@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -39,41 +41,47 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 fun SavedLocationsScreen(
     modifier: Modifier = Modifier,
     viewModel: SavedLocationsViewModel = hiltViewModel(),
-    onNavigateToEdit: (String) -> Unit
+    onNavigateToEdit: (String) -> Unit,
+    criticalError: Boolean
+
 ) {
     val locations by viewModel.locations.collectAsState()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0), // Disable inner insets to prevent double padding
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "Saved Zones",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        CenterAlignedTopAppBar(
+            modifier = if (criticalError) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding() // Your manual control
+            },
+            windowInsets = WindowInsets(0, 0, 0, 0), // <--- Add this to remove default padding
+            title = {
+                Text(
+                    "Saved Zones",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
                 )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                titleContentColor = MaterialTheme.colorScheme.onBackground,
             )
-        }
-    ) { padding ->
-
+        )
         if (locations.isEmpty()) {
-            EmptyState(modifier = Modifier.padding(padding))
+            EmptyState()
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    top = padding.calculateTopPadding() + 16.dp,
+                    top =  0.dp,
                     start = 16.dp,
                     end = 16.dp,
-                    bottom = 16.dp // Standardized padding, outer Scaffold handles bottom bar
+                    bottom = 16.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {

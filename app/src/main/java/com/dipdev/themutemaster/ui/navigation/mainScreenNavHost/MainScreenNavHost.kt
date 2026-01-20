@@ -7,26 +7,27 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -45,9 +46,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.dipdev.themutemaster.ui.components.GlobalErrorBanner
 import com.dipdev.themutemaster.ui.navigation.Screen
+import com.dipdev.themutemaster.ui.screens.generalSettings.GeneralSettingsScreen
 import com.dipdev.themutemaster.ui.screens.home.Home
 import com.dipdev.themutemaster.ui.screens.manageLocation.ManageLocationScreen
-import com.dipdev.themutemaster.ui.screens.mutedContacts.MutedContacts
+import com.dipdev.themutemaster.ui.screens.mutedContacts.ComingSoonScreen
 import com.dipdev.themutemaster.ui.screens.savedLocations.SavedLocationsScreen
 import com.dipdev.themutemaster.ui.viewmodel.AppError
 import com.dipdev.themutemaster.ui.viewmodel.GlobalPermissionViewModel
@@ -77,28 +79,12 @@ fun MainScreenNavHost(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0), // Disable default insets to avoid double padding
-        bottomBar = {
-            val isMainTab = bottomBarItems.any { it.route == currentRoute }
-
-            AnimatedVisibility(
-                visible = isMainTab,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut()
-            ) {
-                FloatingBottomBar(
-                    navController = navController,
-                    items = bottomBarItems
-                )
-            }
-        }
-    ) { innerPadding ->
+   Box (
+       modifier = Modifier.background(MaterialTheme.colorScheme.background)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // Correctly apply scaffold padding here
         ) {
             val criticalError = globalViewModel.activeErrors.firstOrNull()
 
@@ -141,6 +127,10 @@ fun MainScreenNavHost(
                     Home(
                         onNavigateToManage = { id ->
                             navController.navigate(Screen.ManageLocation.createRoute(id = id))
+                        },
+                        criticalError=criticalError!=null,
+                        onSettingsClick = {
+                            navController.navigate(Screen.GeneralSettings.route)
                         }
                     )
                 }
@@ -149,12 +139,32 @@ fun MainScreenNavHost(
                     SavedLocationsScreen (
                         onNavigateToEdit = { id ->
                             navController.navigate(Screen.ManageLocation.createRoute(id = id))
+                        },
+                        criticalError=criticalError!=null
+                    )
+                }
+
+                composable(Screen.MutedContacts.route) {
+                    // 2. Pass the navigation callback to the screen
+                    ComingSoonScreen(
+                        onClose = {
+                            // Navigate back to Home when X is clicked
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     )
                 }
 
-                composable(Screen.MutedContacts.route) { MutedContacts() }
-
+                composable(Screen.GeneralSettings.route){ GeneralSettingsScreen(onNavigateBack = {
+                    navController.popBackStack()
+                },
+                    criticalError=criticalError!=null
+                ) }
                 composable(
                     route = Screen.ManageLocation.route,
                     arguments = listOf(
@@ -170,9 +180,38 @@ fun MainScreenNavHost(
                     ManageLocationScreen(
                         onBack = { navController.popBackStack() },
                         onSave = { navController.popBackStack() },
-                        onDelete = { navController.popBackStack() }
+                        onDelete = { navController.popBackStack() },
+                        criticalError=criticalError!=null
                     )
                 }
+            }
+
+            /*...............................
+            val isMainTab = bottomBarItems.any { it.route == currentRoute }
+
+            AnimatedVisibility(
+                visible = isMainTab,
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                FloatingBottomBar(
+                    navController = navController,
+                    items = bottomBarItems
+                )
+            }*/
+// 3. UPDATED LOGIC: Hide bar if we are on MutedContacts
+            val showBottomBar = bottomBarItems.any { it.route == currentRoute } &&
+                    currentRoute != Screen.MutedContacts.route
+
+            AnimatedVisibility(
+                visible = showBottomBar, // Use the new boolean
+                enter = slideInVertically { it } + fadeIn(),
+                exit = slideOutVertically { it } + fadeOut()
+            ) {
+                FloatingBottomBar(
+                    navController = navController,
+                    items = bottomBarItems
+                )
             }
         }
     }
@@ -186,53 +225,51 @@ fun FloatingBottomBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    Surface(
+    NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .height(64.dp)
-            .shadow(
-                elevation = 12.dp,
-                shape = RoundedCornerShape(32.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            )
-            .clip(RoundedCornerShape(32.dp)),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 8.dp
+            .clip(RoundedCornerShape(32.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainer) // The bar color
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), // Subtle border
+                shape = RoundedCornerShape(32.dp)
+            ),
+        containerColor = Color.Transparent,
+        tonalElevation = 0.dp,
+        windowInsets = WindowInsets(0)
     ) {
-        NavigationBar(
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            windowInsets = WindowInsets(0)
-        ) {
-            items.forEach { screen ->
-                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+        items.forEach { screen ->
+            val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
 
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            imageVector = screen.icon,
-                            contentDescription = screen.title,
-                            modifier = Modifier.padding(4.dp)
-                        )
-                    },
-                    selected = isSelected,
-                    onClick = {
+            NavigationBarItem(
+                icon = {
+                    Icon(
+                        imageVector = screen.icon,
+                        contentDescription = screen.title,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                selected = isSelected,
+                onClick = {
+                    if (!isSelected) {
                         navController.navigate(screen.route) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        selectedTextColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    alwaysShowLabel = false
-                )
-            }
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface
+                ),
+                alwaysShowLabel = false
+            )
         }
     }
 }

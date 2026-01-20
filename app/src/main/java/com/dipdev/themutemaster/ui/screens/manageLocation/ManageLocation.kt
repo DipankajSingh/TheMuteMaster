@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.dipdev.themutemaster.ui.components.CustomTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,33 +62,31 @@ fun ManageLocationScreen(
     onSave: () -> Unit = {},
     onDelete: () -> Unit = {},
     viewModel: ManageLocationViewModel = hiltViewModel(),
-
+    criticalError: Boolean
     ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Edit Location") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    TextButton(onClick = {
-                        viewModel.saveChanges()
-                        onSave()
-                    }) {
-                        Text("Save", fontWeight = FontWeight.Bold)
-                    }
-                }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0) // Fix double padding issue
-    ) { padding ->
+    Column(
+        modifier =
+            if (criticalError){
+                Modifier
+                    .fillMaxWidth()
+            }
+            else{
+                Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+            },
+    ) {
+        CustomTopBar(
+            title = "Edit Location Settings",
+            onBackClick = onBack,
+            actionText = "Save",
+            onActionClick = {
+                viewModel.saveChanges()
+                onSave()
+            }
+        )
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {

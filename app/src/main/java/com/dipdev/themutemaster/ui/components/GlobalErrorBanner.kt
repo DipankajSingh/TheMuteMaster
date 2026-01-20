@@ -41,12 +41,12 @@ fun GlobalErrorBanner(
     AnimatedVisibility(
         visible = true,
         enter = expandVertically() + fadeIn(),
-        exit = shrinkVertically() + fadeOut()
+        exit = shrinkVertically() + fadeOut(),
+        modifier = Modifier.statusBarsPadding().padding(horizontal = 16.dp).padding(top = 16.dp, bottom = 0.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp) // Floating Margins
         ) {
             Card(
                 colors = CardDefaults.cardColors(

@@ -24,6 +24,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object Home : Screen("home_tab", "Home", Icons.Default.Home)
     data object MutedLocations : Screen("muted_locations", "Locations", Icons.Default.LocationOff)
     data object MutedContacts : Screen("muted_contacts", "Contacts", Icons.Default.Person)
+    data object GeneralSettings : Screen("general_settings", "Settings", Icons.Default.Settings)
 
     object ManageLocation : Screen("manage_location?id={id}", "Manage", Icons.Default.Settings) {
         fun createRoute(id: String ): String {

@@ -1,175 +1,310 @@
 package com.dipdev.themutemaster.ui.screens.onboarding
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.InfiniteTransition
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dipdev.themutemaster.R
-import com.dipdev.themutemaster.ui.components.AppLogo // Your existing component
 import kotlinx.coroutines.delay
 
 @Composable
 fun Welcome(
-    modifier: Modifier = Modifier,
     onGetStarted: () -> Unit
 ) {
-    // 1. ANIMATION STATES
-    val scale = remember { Animatable(0.8f) }
-    val opacity = remember { Animatable(0f) }
+    var showContent by remember { mutableStateOf(false) }
 
-    // Trigger animation on entry
     LaunchedEffect(Unit) {
-        scale.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-        )
-        delay(100)
-        opacity.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(500)
-        )
+        showContent = true
     }
+
+    // 1. Background Gradient
+    val brush = Brush.radialGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+            MaterialTheme.colorScheme.background
+        ),
+        radius = 900f
+    )
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        // Background Gradient Blob (Optional: Adds a modern glow)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-        )
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
+                .background(brush)
                 .padding(padding)
-                .fillMaxSize()
-                .padding(24.dp)
         ) {
-            Spacer(Modifier.height(40.dp))
-
-            // 2. HEADER
-            // Fade this in slightly
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                // Decorative Circle behind the image
-                Box(
-                    modifier = Modifier
-                        .size(280.dp)
-                        .scale(scale.value) // Bounce animation
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                )
-
-                // Your Main Image
-                Image(
-                    painter = painterResource(R.drawable.appicon), // Make sure this is high res
-                    contentDescription = "Hero Image",
-                    modifier = Modifier
-                        .size(200.dp)
-                        .scale(scale.value)
-                )
-            }
-
-            // 3. TEXT SECTION (Animated Opacity)
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
+            // --- 2. APP LOGO (TOP CENTER) ---
+            Box(
                 modifier = Modifier
-                    .weight(0.8f) // Takes up bottom space
-                    .alpha(opacity.value) // Fade in
+                    .align(Alignment.TopCenter)
+                    .padding(top = 60.dp)
             ) {
-                // App Logo or Name
-                AppLogo()
-
-                Spacer(Modifier.height(16.dp))
-
-                Text(
-                    text = "Welcome to MuteMaster",
-                    style = MaterialTheme.typography.headlineLarge, // Slightly smaller than Display for better fit
-                    fontWeight = FontWeight.ExtraBold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                // Rich Text: Highlight key words with color
-                Text(
-                    text = buildAnnotatedString {
-                        append("Say goodbye to manual controls.\nAutomate your audio with a ")
-                        withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                            append("smart manager")
-                        }
-                        append(".")
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 24.sp
-                )
+                AnimatedVisibilityBlock(visible = showContent, delay = 100) {
+                    AppLogo()
+                }
             }
 
-            // 4. ACTION BUTTON
-            Button(
-                onClick = onGetStarted,
+            // --- 3. HERO SECTION (CENTERED) ---
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .scale(scale.value), // Slight bounce match
-                shape = RoundedCornerShape(16.dp), // Modern "Squircle"
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                    .align(Alignment.Center)
+                    .offset(y = (-40).dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Get Started",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                Box(contentAlignment = Alignment.Center) {
+                    PulseEffect()
+                    Surface(
+                        shape = CircleShape,
+                        shadowElevation = 24.dp,
+                        tonalElevation = 8.dp,
+                        modifier = Modifier.size(140.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.appicon),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp)
+                        )
+                    }
+                }
             }
 
-            Spacer(Modifier.height(24.dp))
+            // --- 4. BOTTOM SECTION (TEXT & BUTTON) ---
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Title
+                AnimatedVisibilityBlock(visible = showContent, delay = 300) {
+                    Text(
+                        text = "Master Your Silence",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Description
+                AnimatedVisibilityBlock(visible = showContent, delay = 400) {
+                    Text(
+                        text = buildAnnotatedString {
+                            append("Your phone should know when to be quiet.\nAutomate your audio with ")
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                                append("smart geofences")
+                            }
+                            append(".")
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 26.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                // Button
+                AnimatedVisibilityBlock(visible = showContent, delay = 500) {
+                    Button(
+                        onClick = onGetStarted,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(58.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                    ) {
+                        Text(
+                            text = "Get Started",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Icon(Icons.AutoMirrored.Rounded.ArrowForward, null)
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
 
-// Helper extension for alpha if not using standard Modifier.alpha
-fun Modifier.alpha(alpha: Float) = this.then(Modifier.graphicsLayer(alpha = alpha))
+// ==========================================
+//        HELPER COMPONENTS
+// ==========================================
+
+@Composable
+fun AppLogo() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.GraphicEq,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.colorScheme.primary,
+            )
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = "MuteMaster",
+                style = androidx.compose.ui.text.TextStyle(
+                    fontFamily = FontFamily(Font(R.font.sekuya_regular)), // Ensure this font exists
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            Spacer(modifier = Modifier.width(2.dp))
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 5.dp)
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+        }
+    }
+}
+
+@Composable
+fun PulseEffect() {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+
+    PulseRing(infiniteTransition, delay = 0)
+    PulseRing(infiniteTransition, delay = 700)
+    PulseRing(infiniteTransition, delay = 1400)
+}
+
+@Composable
+fun PulseRing(transition: InfiniteTransition, delay: Int) {
+    val scale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 2.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, delayMillis = delay, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scale"
+    )
+
+    val alpha by transition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, delayMillis = delay, easing = LinearOutSlowInEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .size(140.dp)
+            .scale(scale)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = alpha),
+                shape = CircleShape
+            )
+    )
+}
+
+@Composable
+fun AnimatedVisibilityBlock(
+    visible: Boolean,
+    delay: Int,
+    content: @Composable () -> Unit
+) {
+    val alpha = remember { Animatable(0f) }
+    val translationY = remember { Animatable(50f) }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            delay(delay.toLong())
+            alpha.animateTo(1f, tween(500))
+        }
+    }
+    LaunchedEffect(visible) {
+        if (visible) {
+            delay(delay.toLong())
+            translationY.animateTo(0f, spring(dampingRatio = 0.6f, stiffness = 100f))
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                this.alpha = alpha.value
+                this.translationY = translationY.value
+            }
+    ) {
+        content()
+    }
+}
