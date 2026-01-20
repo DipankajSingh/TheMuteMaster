@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object AppRoute {
+    const val WELCOME = "welcome_screen"
     const val PERMISSION_FLOW = "permission_flow_root"
     const val MAIN_APP_CONTAINER = "main_app_container"
 }
@@ -15,6 +16,8 @@ object AppRoute {
 sealed class PermissionRoute(val route: String) {
     object Foreground : PermissionRoute("perm_foreground")
     object Background : PermissionRoute("perm_background")
+    object NotificationPermission : PermissionRoute("perm_notification")
+    object Dnd : PermissionRoute("perm_dnd")
 }
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {

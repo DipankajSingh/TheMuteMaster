@@ -7,19 +7,33 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -29,31 +43,46 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.dipdev.themutemaster.ui.components.GlobalErrorBanner
 import com.dipdev.themutemaster.ui.navigation.Screen
 import com.dipdev.themutemaster.ui.screens.home.Home
 import com.dipdev.themutemaster.ui.screens.manageLocation.ManageLocationScreen
 import com.dipdev.themutemaster.ui.screens.mutedContacts.MutedContacts
 import com.dipdev.themutemaster.ui.screens.savedLocations.SavedLocationsScreen
+import com.dipdev.themutemaster.ui.viewmodel.AppError
+import com.dipdev.themutemaster.ui.viewmodel.GlobalPermissionViewModel
+import com.dipdev.themutemaster.utils.openAppSettings
+import com.dipdev.themutemaster.utils.openDndSettings
 
 @Composable
-fun MainScreenNavHost() {
+fun MainScreenNavHost(
+    globalViewModel: GlobalPermissionViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Observe current screen to toggle Bottom Bar visibility
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val bottomBarItems = listOf(Screen.MutedLocations, Screen.Home, Screen.MutedContacts)
 
-    Scaffold(
-        // We use a transparent container color so the floating bar stands out against the background content
-        containerColor = MaterialTheme.colorScheme.background,
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                globalViewModel.checkPermissions()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0), // Disable default insets to avoid double padding
         bottomBar = {
-            // HIDE LOGIC: Only show bottom bar if the current route is one of the main tabs
             val isMainTab = bottomBarItems.any { it.route == currentRoute }
 
-            // Wrap in AnimatedVisibility so the bar slides up/down smoothly when navigating to "Manage"
             AnimatedVisibility(
                 visible = isMainTab,
                 enter = slideInVertically { it } + fadeIn(),
@@ -66,74 +95,89 @@ fun MainScreenNavHost() {
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding),
-
-            // --- GLOBAL ANIMATIONS (Slide Left/Right) ---
-            enterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300))
-            },
-            exitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300))
-            },
-            popEnterTransition = {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) +
-                        fadeIn(tween(300))
-            },
-            popExitTransition = {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) +
-                        fadeOut(tween(300))
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Correctly apply scaffold padding here
         ) {
-            // 1. HOME SCREEN
-            composable(Screen.Home.route) {
-                Home(
-                    onNavigateToManage = { id ->
-                        navController.navigate(Screen.ManageLocation.createRoute(id = id))
+            val criticalError = globalViewModel.activeErrors.firstOrNull()
+
+            if (criticalError != null) {
+                GlobalErrorBanner(
+                    error = criticalError,
+                    onFixClick = {
+                        when (criticalError) {
+                            AppError.DND_MISSING -> context.openDndSettings()
+                            AppError.LOCATION_FG_MISSING,
+                            AppError.LOCATION_BG_MISSING,
+                            AppError.NOTIFICATION_MISSING -> context.openAppSettings()
+                        }
                     }
                 )
             }
 
-            // 2. SAVED LOCATIONS SCREEN
-            composable(Screen.MutedLocations.route) {
-                SavedLocationsScreen(
-                    onNavigateToEdit = { id ->
-                        navController.navigate(Screen.ManageLocation.createRoute(id = id))
-                    }
-                )
-            }
-
-            // 3. CONTACTS
-            composable(Screen.MutedContacts.route) { MutedContacts() }
-
-            // 4. THE MANAGE SCREEN
-            composable(
-                route = Screen.ManageLocation.route,
-                arguments = listOf(
-                    navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null }
-                ),
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Home.route,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 enterTransition = {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(400))
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300))
+                },
+                exitTransition = {
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(300))
+                },
+                popEnterTransition = {
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) +
+                            fadeIn(tween(300))
                 },
                 popExitTransition = {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(400))
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(300)) +
+                            fadeOut(tween(300))
                 }
-            ) { backStackEntry ->
-                val id = backStackEntry.arguments?.getString("id")
+            ) {
+                composable(Screen.Home.route) {
+                    Home(
+                        onNavigateToManage = { id ->
+                            navController.navigate(Screen.ManageLocation.createRoute(id = id))
+                        }
+                    )
+                }
 
-                ManageLocationScreen(
-                    onBack = { navController.popBackStack() },
-                    onSave = { navController.popBackStack() },
-                    onDelete = { navController.popBackStack() }
-                )
+                composable(Screen.MutedLocations.route) {
+                    SavedLocationsScreen (
+                        onNavigateToEdit = { id ->
+                            navController.navigate(Screen.ManageLocation.createRoute(id = id))
+                        }
+                    )
+                }
+
+                composable(Screen.MutedContacts.route) { MutedContacts() }
+
+                composable(
+                    route = Screen.ManageLocation.route,
+                    arguments = listOf(
+                        navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null }
+                    ),
+                    enterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(400))
+                    },
+                    popExitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(400))
+                    }
+                ) {
+                    ManageLocationScreen(
+                        onBack = { navController.popBackStack() },
+                        onSave = { navController.popBackStack() },
+                        onDelete = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }
 }
 
-// --- NEW MODERN COMPONENT ---
 @Composable
 fun FloatingBottomBar(
     navController: NavHostController,
@@ -142,42 +186,36 @@ fun FloatingBottomBar(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // 1. Container Surface (The "Pill")
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 5.dp, vertical = 24.dp) // Float off the edges
-            .height(64.dp) // Compact height
+            .padding(horizontal = 16.dp, vertical = 24.dp)
+            .height(64.dp)
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(32.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) // Colored shadow
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
             )
-            .clip(RoundedCornerShape(32.dp)), // Fully rounded corners
-        color = MaterialTheme.colorScheme.surfaceContainer, // Modern grey-ish surface
+            .clip(RoundedCornerShape(32.dp)),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 8.dp
     ) {
-        // 2. The Row of Items
         NavigationBar(
-            containerColor = Color.Transparent, // Transparent so Surface color shows
+            containerColor = Color.Transparent,
             tonalElevation = 0.dp,
-            windowInsets =  WindowInsets(0) // Prevent extra system padding inside the floating pill
+            windowInsets = WindowInsets(0)
         ) {
             items.forEach { screen ->
                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
 
                 NavigationBarItem(
                     icon = {
-                        // Icon switch (Filled when selected, Outlined when not - optional)
                         Icon(
                             imageVector = screen.icon,
                             contentDescription = screen.title,
-                            modifier = Modifier.padding(8.dp)
-
+                            modifier = Modifier.padding(4.dp)
                         )
                     },
-                    // CLEAN LOOK: Only show text when selected (or remove this label block entirely)
-
                     selected = isSelected,
                     onClick = {
                         navController.navigate(screen.route) {
@@ -186,14 +224,13 @@ fun FloatingBottomBar(
                             restoreState = true
                         }
                     },
-                    // CUSTOM COLORS
                     colors = NavigationBarItemDefaults.colors(
                         indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                         selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         selectedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
-                    alwaysShowLabel = false // This creates the "Expand on select" animation
+                    alwaysShowLabel = false
                 )
             }
         }

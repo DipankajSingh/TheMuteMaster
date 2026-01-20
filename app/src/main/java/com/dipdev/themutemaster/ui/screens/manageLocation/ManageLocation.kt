@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,7 +59,8 @@ fun ManageLocationScreen(
     onBack: () -> Unit = {},
     onSave: () -> Unit = {},
     onDelete: () -> Unit = {},
-    viewModel: ManageLocationViewModel = hiltViewModel()
+    viewModel: ManageLocationViewModel = hiltViewModel(),
+
     ) {
     Scaffold(
         topBar = {
@@ -79,7 +81,8 @@ fun ManageLocationScreen(
                 }
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0) // Fix double padding issue
     ) { padding ->
         Column(
             modifier = Modifier
@@ -88,11 +91,12 @@ fun ManageLocationScreen(
                 .verticalScroll(rememberScrollState())
         ) {
 
-            // In the future, replace this Box with a GoogleMap composable
+            // SECTION 1: MAP VISUALIZER (Full Width)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(200.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 // Mock Map Visuals
@@ -125,7 +129,7 @@ fun ManageLocationScreen(
                 Surface(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp),
+                        .padding(12.dp),
                     shape = RoundedCornerShape(8.dp),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                     tonalElevation = 2.dp
@@ -139,7 +143,12 @@ fun ManageLocationScreen(
                 }
             }
 
-            Column(modifier = Modifier.padding(14.dp)) {
+            // CONTENT SECTION (With Proper Padding)
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
 
                 // SECTION 2: BASIC INFO
                 Text(
@@ -164,7 +173,7 @@ fun ManageLocationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Read-Only Address Field (with copy icon implies uneditable but actionable)
+                // Read-Only Address Field
                 OutlinedTextField(
                     value = viewModel.locationAddress,
                     onValueChange = {}, // Read only
@@ -216,7 +225,7 @@ fun ManageLocationScreen(
                             value = viewModel.radius,
                             onValueChange = { viewModel.radius = it },
                             valueRange = 150f..1000f,
-                            steps = 19, // Snaps to 50m increments
+                            steps = 19,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                         Text(
@@ -230,7 +239,7 @@ fun ManageLocationScreen(
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                         )
 
-                        // Feature B: Action Profile (Future Proofing)
+                        // Feature B: Action Profile
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -245,7 +254,6 @@ fun ManageLocationScreen(
                                 Text("Automation Profile", style = MaterialTheme.typography.titleSmall)
                                 Text("Set device to ${viewModel.selectedProfile}", style = MaterialTheme.typography.bodySmall)
                             }
-                            // Placeholder for a Dropdown or Switch
                             Switch(
                                 checked = viewModel.isMutingEnabled,
                                 onCheckedChange = { viewModel.isMutingEnabled = it }
@@ -258,12 +266,15 @@ fun ManageLocationScreen(
 
                 // SECTION 4: DANGER ZONE
                 OutlinedButton(
-                    onClick = onDelete,
+                    onClick = {
+                        viewModel.deleteLocation()
+                        onDelete()
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     ),
-                    border = null // Makes it look like a ghost button
+                    border = null
                 ) {
                     Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
@@ -275,4 +286,3 @@ fun ManageLocationScreen(
         }
     }
 }
-

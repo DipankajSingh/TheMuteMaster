@@ -25,16 +25,16 @@ interface GeofenceDao {
      * it will be overwritten (Updated). This handles both 'Add' and 'Edit' cases.
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertGeofence(geofence: GeofenceEntity)
+    suspend fun insertGeofence(geofence: GeofenceEntity):Long
 
     /**
      * Deletes a specific geofence from the database.
-     * Room matches the ID of the passed object to find the row to delete.
+     * Room matches the ID of the passed id to find the row to delete.
      *
-     * @param geofence The entity to remove.
+     * @param id The entity to remove.
      */
-    @Delete
-    suspend fun deleteGeofence(geofence: GeofenceEntity)
+    @Query("DELETE from geofences WHERE id= :id")
+    suspend fun deleteGeofenceById(id: Int)
 
     /**
      * Observes all geofences in the database.
@@ -72,4 +72,7 @@ interface GeofenceDao {
 
     @Query("SELECT * FROM geofences WHERE id = :id")
     suspend fun getGeofenceById(id: Int): GeofenceEntity?
+
+    @Delete
+    suspend fun deleteGeofence(geofence: GeofenceEntity)
 }

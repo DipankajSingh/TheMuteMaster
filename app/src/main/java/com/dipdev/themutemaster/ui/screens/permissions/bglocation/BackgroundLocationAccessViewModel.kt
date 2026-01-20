@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import com.dipdev.themutemaster.utils.hasBackgroundLocationPermission
 
 class BackgroundLocationAccessViewModel : ViewModel() {
 
@@ -58,12 +59,9 @@ class BackgroundLocationAccessViewModel : ViewModel() {
     fun checkPermission(context: Context) {
         // Background permission is only relevant for Android 10 (Q) and above
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val hasPermission = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
 
-            if (hasPermission) {
+
+            if (context.hasBackgroundLocationPermission()) {
                 backgroundLocationState = PermissionState.Granted
                 // Reset dialogs as we are done
                 shouldShowDialog = false

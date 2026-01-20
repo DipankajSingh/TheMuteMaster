@@ -4,8 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ForegroundLocationAccessViewModel: ViewModel() {
+@HiltViewModel
+class ForegroundLocationAccessViewModel @Inject constructor(): ViewModel() {
     sealed class PermissionState{
         object NotRequested: PermissionState()
         object Granted: PermissionState()
@@ -27,13 +30,11 @@ class ForegroundLocationAccessViewModel: ViewModel() {
             isPermanentDenied->{
                 shouldShowDialog=true
                 shouldShowPermanentDeniedDialog=true
-                println("perma denied in vm")
                 PermissionState.PermanentDenied
             }
             else -> {
                 shouldShowPermanentDeniedDialog=false
                 shouldShowDialog=true
-                println("denied in vm")
                 PermissionState.DeniedOnce
             }
         }
@@ -41,22 +42,17 @@ class ForegroundLocationAccessViewModel: ViewModel() {
 
     fun setPermissionGranted(){
         foregroundLocationState= PermissionState.Granted
-        println("Permission granted vm")
     }
 
     fun requestPermanentDeniedPermission(){
         shouldShowDialog=true
         shouldShowPermanentDeniedDialog=true
-        println("requestPermanentDeniedPermission called vm")
 
     }
 
     fun onDismissRequest(){
         shouldShowDialog=false
         shouldShowPermanentDeniedDialog=false
-
-        println("dialog closed vm")
-
     }
 
 }

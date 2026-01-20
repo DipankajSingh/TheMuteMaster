@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dipdev.themutemaster.data.GeofenceManager
 import com.dipdev.themutemaster.data.LocationClient
 import com.dipdev.themutemaster.data.local.GeofenceDao
 import com.dipdev.themutemaster.data.local.GeofenceEntity
@@ -16,7 +17,9 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val locationClient: LocationClient,
-    private val dao: GeofenceDao
+    private val dao: GeofenceDao,
+    private val geofenceManager: GeofenceManager
+
 ) : ViewModel() {
 
     // --- UI STATE ---
@@ -39,7 +42,7 @@ class HomeViewModel @Inject constructor(
 
 
     private var lastFetchTime: Long = 0
-    private val CACHE_TIMEOUT = 60 * 5000L
+    private val CACHE_TIMEOUT = 60 * 3000L
 
     init {
         viewModelScope.launch {
@@ -134,18 +137,47 @@ class HomeViewModel @Inject constructor(
         val lat = currentLatitude ?: return
         val lng = currentLongitude ?: return
 
+        // 1. INPUT VALIDATION: Stop "Locating..." from being saved as an address
+        val addressToSave = when {
+            locationText.isNullOrBlank() -> "Unknown Address"
+            locationText == "Locating..." -> "Unknown Address"
+            locationText!!.startsWith("Error") -> "Unknown Address"
+            else -> locationText!!
+        }
+
         viewModelScope.launch {
-            dao.insertGeofence(
-                GeofenceEntity(
+            try {
+                // 2. CREATE ENTITY ONCE
+                val entity = GeofenceEntity(
                     latitude = lat,
                     longitude = lng,
-                    fullAddress = locationText ?: "Unknown Address",
+                    fullAddress = addressToSave,
                     isEnabled = true
                 )
-            )
-            // Update UI immediately to reflect the save
-            isLocationSaved = true
-            isLocationMuted = true
+
+                // 3. INSERT & GET ID (Long -> Int)
+                val newId = dao.insertGeofence(entity).toInt()
+
+                // 4. OPTIMIZATION: Copy the ID into the entity (No DB Read required)
+                val finalEntity = entity.copy(id = newId)
+
+                // 5. REGISTER GEOFENCE
+                // Now we pass the complete object directly to the manager
+                geofenceManager.addGeofence(finalEntity)
+
+                // 6. UPDATE UI
+                locationId = newId.toString()
+                isLocationSaved = true
+                isLocationMuted = true
+
+                // Optional: Update text to the sanitized version immediately
+                locationText = addressToSave
+
+            } catch (e: Exception) {
+                // CRITICAL: Catch DB or Geofence errors
+                e.printStackTrace()
+                // Ideally, emit a "Save Failed" event to the UI here
+            }
         }
     }
 }

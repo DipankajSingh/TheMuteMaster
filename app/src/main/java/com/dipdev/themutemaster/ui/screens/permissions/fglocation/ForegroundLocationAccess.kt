@@ -5,40 +5,47 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.dipdev.themutemaster.ui.components.LocationImage
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dipdev.themutemaster.ui.components.PermissionDialog
+import com.dipdev.themutemaster.utils.hasForegroundLocationPermission
+import com.dipdev.themutemaster.utils.hasLocationPermission
 import com.dipdev.themutemaster.utils.openAppSettings
 
 @Composable
 fun ForegroundLocationAccess(
     modifier: Modifier = Modifier,
-    viewModel: ForegroundLocationAccessViewModel = viewModel()
+    viewModel: ForegroundLocationAccessViewModel = hiltViewModel(),
+    onSkip: () -> Unit
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // --- Business Logic (Untouched) ---
+    // --- Business Logic (Preserved) ---
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -50,25 +57,24 @@ fun ForegroundLocationAccess(
         )
     }
 
-    LaunchedEffect(Unit) {
-        val hasPermission = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-        println("launch effect ran $hasPermission")
-
-        if (hasPermission) {
-            viewModel.setPermissionGranted()
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (context.hasForegroundLocationPermission()) {
+                    viewModel.setPermissionGranted()
+                }
+            }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // --- Dialogs (Untouched) ---
+    // --- Dialogs (Preserved) ---
     if (!viewModel.shouldShowPermanentDeniedDialog && viewModel.shouldShowDialog) {
         PermissionDialog(
             title = "Location Permission Required",
-            message = "We need location access to detect your location and automatically mute/unmute your device at specified locations.",
+            message = "We need location access to detect when you enter or leave your saved zones (like Home or Work).",
             onActionRequest = {
-                println("denied in screen ran")
                 launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             },
             actionName = "Allow Location",
@@ -81,7 +87,6 @@ fun ForegroundLocationAccess(
             title = "Permission Denied",
             message = "This app needs location access to function properly. Please go to Settings → Permissions → Location and enable it.",
             onActionRequest = {
-                println("perma denied in screen ran")
                 openAppSettings(context)
                 viewModel.onDismissRequest()
             },
@@ -90,119 +95,185 @@ fun ForegroundLocationAccess(
         )
     }
 
-    // --- UI Layout (Styled) ---
-    Column(
-        modifier = modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally // Fix: Center everything by default
-    ) {
-        // Top Bar Area
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.TopEnd
+    // --- New Modern UI ---
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TextButton(onClick = {}) {
+            // 1. TOP BAR (T&C)
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+                TextButton(onClick = { /* TODO: Open T&C */ }) {
+                    Text(
+                        text = "Terms & Privacy",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Spacer(Modifier.weight(0.1f))
+
+            // 2. HERO IMAGE (Gradient Bubble)
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(Modifier.height(32.dp))
+
+            // 3. HEADLINE
+            Text(
+                text = "Where are you?",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Text(
+                text = "To mute your phone automatically when you arrive at work or school, MuteMaster needs to know your location.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(40.dp))
+
+            // 4. VALUE PROPOSITION LIST
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                LocationBenefitItem(
+                    icon = Icons.Outlined.MyLocation,
+                    title = "Precise Triggers",
+                    desc = "Ensures your phone silences exactly when you walk through the door."
+                )
+                LocationBenefitItem(
+                    icon = Icons.Outlined.Security,
+                    title = "Private & Secure",
+                    desc = "Your location data stays on your device. We never share it."
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // 5. ACTION BUTTONS
+            Button(
+                onClick = {
+
+
+                    if (context.hasForegroundLocationPermission()) {
+                        viewModel.setPermissionGranted()
+                    } else {
+                        // Check logic for permanent denial vs standard request
+                        val canShowRationale = (context as Activity).shouldShowRequestPermissionRationale(
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                        if (!canShowRationale && viewModel.foregroundLocationState == ForegroundLocationAccessViewModel.PermissionState.PermanentDenied) {
+                            viewModel.requestPermanentDeniedPermission()
+                        } else {
+                            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(25.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
                 Text(
-                    text = "T&C",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
+                    text = "Allow While Using App",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            TextButton(
+                onClick = onSkip,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Maybe Later",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+// --- Local Helper Composable ---
+@Composable
+private fun LocationBenefitItem(
+    icon: ImageVector,
+    title: String,
+    desc: String
+) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+            modifier = Modifier.size(48.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
-
-        Spacer(Modifier.height(24.dp))
-
-        // Hero Image
-        // Assuming LocationImage() has a default size, but we ensure it doesn't stretch
-        Box(contentAlignment = Alignment.Center) {
-            LocationImage()
-        }
-
-        Spacer(Modifier.height(40.dp))
-
-        // Title
-        Text(
-            text = "Allow Your Location",
-            style = MaterialTheme.typography.headlineMedium, // Better than displaySmall for this context
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        // Description
-        Text(
-            text = "We need your location permission to manage your audio profiles automatically when you reach specified locations. Please see terms and conditions to know how we use this information.",
-            style = MaterialTheme.typography.bodyLarge, // Fix: Readable size
-            fontWeight = FontWeight.Normal, // Fix: 'Thin' is hard to read
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, // Softer text color
-            lineHeight = 24.sp
-        )
-
-        Spacer(Modifier.weight(1f)) // Push content up, buttons down
-
-        // Disclaimer
-        Text(
-            text = "By continuing, you agree with T&C!",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.outline,
-            textDecoration = TextDecoration.Underline,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        // Main Action Button
-        Button(
-            onClick = {
-                // Logic pasted from your code
-                val hasPermission = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-
-                if (hasPermission) {
-                    viewModel.setPermissionGranted()
-                    return@Button
-                }
-
-                val canShowRationale = (context as Activity).shouldShowRequestPermissionRationale(
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-                if (!canShowRationale && viewModel.foregroundLocationState == ForegroundLocationAccessViewModel.PermissionState.PermanentDenied) {
-                    viewModel.requestPermanentDeniedPermission()
-                    return@Button
-                }
-
-                launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            },
-            modifier = Modifier
-                .fillMaxWidth() // Fill width looks better on modern mobile UI
-                .height(50.dp), // Standard touch target height
-            shape = MaterialTheme.shapes.medium
-        ) {
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
             Text(
-                text = "Allow Access",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Secondary Action
-        TextButton(
-            onClick = {},
-            modifier = Modifier.height(48.dp)
-        ) {
-            Text(
-                text = "Not now",
+                text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = desc,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 20.sp
             )
         }
-
-        Spacer(Modifier.height(16.dp)) // Bottom safety margin
     }
 }

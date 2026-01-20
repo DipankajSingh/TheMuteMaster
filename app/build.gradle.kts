@@ -69,12 +69,7 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    // FIX 1: Use hardcoded version instead of 'libs.play.services.location'
     implementation("com.google.android.gms:play-services-location:21.3.0")
-
-    // FIX 2: Hilt Dependencies
-    // CORRECT HILT DEPENDENCIES (Notice the colons ':')
     implementation("com.google.dagger:hilt-android:2.51")
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
@@ -89,12 +84,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    // ROOM DATABASE
     implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1") // Adds Coroutine support
+    implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }
 
 kapt {
-    correctErrorTypes = true // here as well
+    correctErrorTypes = true
 }

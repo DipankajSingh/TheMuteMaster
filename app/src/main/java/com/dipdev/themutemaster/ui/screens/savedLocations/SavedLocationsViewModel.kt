@@ -3,6 +3,7 @@ package com.dipdev.themutemaster.ui.screens.savedLocations
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dipdev.themutemaster.data.GeofenceManager
 import com.dipdev.themutemaster.data.local.GeofenceDao
 import com.dipdev.themutemaster.data.local.GeofenceEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SavedLocationsViewModel @Inject constructor(
-    private val dao: GeofenceDao
+    private val dao: GeofenceDao,
+    private val geofenceManager: GeofenceManager
 ) : ViewModel() {
 
     // Hot Flow: Automatically updates the UI whenever the DB changes
@@ -24,16 +26,23 @@ class SavedLocationsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    fun deleteLocation(geofence: GeofenceEntity) {
+    fun toggleLocation(geofence: GeofenceEntity, isEnabled: Boolean) {
         viewModelScope.launch {
-            dao.deleteGeofence(geofence)
+            val updated = geofence.copy(isEnabled = isEnabled)
+            dao.insertGeofence(updated)
+
+            if (isEnabled) {
+                geofenceManager.addGeofence(updated)
+            } else {
+                geofenceManager.removeGeofence(updated)
+            }
         }
     }
 
-    fun toggleLocation(geofence: GeofenceEntity, isEnabled: Boolean) {
+    fun deleteLocation(geofence: GeofenceEntity) {
         viewModelScope.launch {
-            // We copy the object with the new status and update it
-            dao.insertGeofence(geofence.copy(isEnabled = isEnabled))
+            dao.deleteGeofence(geofence)
+            geofenceManager.removeGeofence(geofence)
         }
     }
 }
