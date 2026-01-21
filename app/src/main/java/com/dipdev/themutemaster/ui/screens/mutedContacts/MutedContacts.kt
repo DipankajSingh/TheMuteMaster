@@ -1,6 +1,7 @@
 package com.dipdev.themutemaster.ui.screens.mutedContacts
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.SolidColor
@@ -14,22 +15,27 @@ import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import kotlinx.coroutines.launch
 
 @Composable
 fun ComingSoonScreen(onClose: () -> Unit) {
     val view = LocalView.current
     val darkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
 
     DisposableEffect(view) {
         val window = (view.context as Activity).window
@@ -53,7 +59,8 @@ fun ComingSoonScreen(onClose: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(premiumGradient)
+            .background(premiumGradient),
+
     ) {
         // Decorative background glow (Behind the card)
         Box(
@@ -152,7 +159,9 @@ fun ComingSoonScreen(onClose: () -> Unit) {
 
             // --- 3. THE "GLASS" CARD (Mock UI) ---
             // Simulates a frosted glass effect
-            Card(
+            Card(onClick = {
+                Toast.makeText(context, "This feature is coming in the next update!", Toast.LENGTH_SHORT).show()
+            },
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White.copy(alpha = 0.08f) // Translucent

@@ -1,66 +1,58 @@
 package com.dipdev.themutemaster.ui.screens.generalSettings
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
+import com.dipdev.themutemaster.BuildConfig
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.Security
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dipdev.themutemaster.data.local.AppThemeMode
 import com.dipdev.themutemaster.ui.components.CustomTopBar
 import com.dipdev.themutemaster.ui.components.SettingsAction
 import com.dipdev.themutemaster.ui.components.SettingsGroup
-import com.dipdev.themutemaster.ui.components.SettingsSwitch
 
 @Composable
 fun GeneralSettingsScreen(
     onNavigateBack: () -> Unit,
-    // Inject ViewModel state here
-    isDarkTheme: Boolean=true,
-    onThemeChanged: Boolean = true,
-    isNotificationsEnabled: Boolean = true,
-    onNotificationChanged: Boolean=true,
-    defaultRadius: Float=10f,
-    onRadiusChanged: Float = 20f,
-    criticalError: Boolean
+    viewModel: GeneralSettingsViewModel = hiltViewModel(),
+    criticalError: Boolean = false
 ) {
+    // 1. Observe State from ViewModel
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val defaultRadius by viewModel.defaultRadius.collectAsStateWithLifecycle()
+
+    // 2. Local State for Dialogs
+    var showThemeDialog by remember { mutableStateOf(false) }
+
+    val uriHandler = LocalUriHandler.current
+
     Column(modifier =
-        if (criticalError){
-            Modifier
-                .fillMaxWidth()
-        }
-        else{
+        if (criticalError) {
+            Modifier.fillMaxWidth()
+        } else {
             Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-        }) {
+        }
+    ) {
 
         CustomTopBar(
             onBackClick = onNavigateBack,
             title = "General settings",
-
         )
 
         Column(
@@ -71,38 +63,38 @@ fun GeneralSettingsScreen(
 
             // --- SECTION 1: BEHAVIOR ---
             SettingsGroup("Behavior") {
-                SettingsSwitch(
-                    icon = Icons.Rounded.Notifications,
-                    title = "Status Notification",
-                    subtitle = "Show persistent icon when muted",
-                    checked = isNotificationsEnabled,
-                    onCheckedChange = {  }
-                )
-                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+                // Determine subtitle based on current mode
+                val themeSubtitle = when (themeMode) {
+                    AppThemeMode.LIGHT -> "Light Mode"
+                    AppThemeMode.DARK -> "Dark Mode"
+                    AppThemeMode.SYSTEM -> "System Default"
+                }
 
-                SettingsSwitch(
+                // Clickable Action to open Dialog
+                SettingsAction(
                     icon = Icons.Rounded.DarkMode,
-                    title = "Dark Mode",
-                    subtitle = "Force dark theme",
-                    checked = isDarkTheme,
-                    onCheckedChange = {  }
+                    title = "App Theme",
+                    subtitle = themeSubtitle,
+                    onClick = { showThemeDialog = true }
                 )
             }
 
             // --- SECTION 2: DEFAULTS ---
             SettingsGroup("Geofence Defaults") {
-                // Example of a custom item (Slider) inserted seamlessly
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Radar, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.width(16.dp))
-                        Text("Default Radius: ${defaultRadius.toInt()}m")
+                        Text(
+                            text = "Default Radius: ${defaultRadius.toInt()}m",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                     Slider(
                         value = defaultRadius,
-                        onValueChange = {  },
-                        valueRange = 50f..500f,
-                        steps = 9
+                        onValueChange = { viewModel.updateRadius(it) },
+                        valueRange = 100f..500f,
+                        steps = 3 // Snaps to 50m increments
                     )
                 }
             }
@@ -112,21 +104,24 @@ fun GeneralSettingsScreen(
                 SettingsAction(
                     icon = Icons.Rounded.Security,
                     title = "Privacy Policy",
-                    onClick = { /* Open URL */ }
+                    onClick = {
+                        // Replace with your actual URL
+                        uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+                    }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
 
                 SettingsAction(
                     icon = Icons.Rounded.Info,
                     title = "About MuteMaster",
-                    subtitle = "Version 1.0.0",
-                    onClick = { /* Show Dialog */ }
+                    subtitle = "Version ${BuildConfig.VERSION_NAME}",
+                    onClick = { /* TODO: Show About Dialog */ }
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Subtle footer
+            // Footer
             Text(
                 text = "Made with ❤️ by Dipankaj",
                 style = MaterialTheme.typography.labelMedium,
@@ -134,6 +129,75 @@ fun GeneralSettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    // --- THEME SELECTION DIALOG ---
+    if (showThemeDialog) {
+        AlertDialog(
+            onDismissRequest = { showThemeDialog = false },
+            title = { Text("Choose Theme") },
+            text = {
+                Column {
+                    ThemeRadioButton(
+                        text = "System Default",
+                        selected = themeMode == AppThemeMode.SYSTEM,
+                        onClick = {
+                            viewModel.setThemeMode(AppThemeMode.SYSTEM)
+                            showThemeDialog = false
+                        }
+                    )
+                    ThemeRadioButton(
+                        text = "Light Mode",
+                        selected = themeMode == AppThemeMode.LIGHT,
+                        onClick = {
+                            viewModel.setThemeMode(AppThemeMode.LIGHT)
+                            showThemeDialog = false
+                        }
+                    )
+                    ThemeRadioButton(
+                        text = "Dark Mode",
+                        selected = themeMode == AppThemeMode.DARK,
+                        onClick = {
+                            viewModel.setThemeMode(AppThemeMode.DARK)
+                            showThemeDialog = false
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showThemeDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+// --- HELPER COMPOSABLE ---
+@Composable
+private fun ThemeRadioButton(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }

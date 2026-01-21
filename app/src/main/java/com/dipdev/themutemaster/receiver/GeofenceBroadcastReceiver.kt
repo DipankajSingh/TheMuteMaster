@@ -10,105 +10,88 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dipdev.themutemaster.R
 import com.dipdev.themutemaster.data.local.MuteStateManager
-import com.dipdev.themutemaster.utils.hasNotificationPermission
+import com.dipdev.themutemaster.utils.hasNotificationPermission // Import your utility
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
+    // A constant ID ensures we update/remove the SAME notification every time
     private val notificationId = 1234
-    private val channelId = "mute_master_debug_channel" // Renamed for clarity
+    private val channelId = "mute_master_status_channel"
 
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent) ?: return
-
         if (geofencingEvent.hasError()) {
-            val errorMsg = "Error Code: ${geofencingEvent.errorCode}"
-            Log.e("GeofenceReceiver", errorMsg)
-            sendDebugNotification(context, "Geofence Error", errorMsg) // Notify on error too!
+            Log.e("GeofenceReceiver", "Error Code: ${geofencingEvent.errorCode}")
             return
         }
 
         val geofenceTransition = geofencingEvent.geofenceTransition
         val muteStateManager = MuteStateManager(context)
-        val timestamp = getTimestamp()
 
         when (geofenceTransition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                Log.d("GeofenceReceiver", "ENTER Event at $timestamp")
-
-                // Attempt Mute
+                // The muting happens here regardless of notification permissions
                 val wasMuted = muteStateManager.attemptMute()
 
-                // Detailed Debug Message
-                val status = if (wasMuted) "Success (Muted)" else "Skipped (Already Silent/Error)"
-                sendDebugNotification(context, "Entered Zone", "Time: $timestamp\nResult: $status")
+                if (wasMuted) {
+                    // Try to show status, but safe-check permission first
+                    showActiveNotification(context)
+                } else {
+                    Log.d("GeofenceReceiver", "Entered zone, but phone was already silent.")
+                }
             }
-
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                Log.d("GeofenceReceiver", "EXIT Event at $timestamp")
-
-                // Attempt Restore
                 val wasRestored = muteStateManager.attemptRestore()
-
-                // Detailed Debug Message
-                // WE DO NOT CANCEL. We update it so you see the proof.
-                val status = if (wasRestored) "Success (Restored)" else "Skipped (No Change)"
-                sendDebugNotification(context, "Exited Zone", "Time: $timestamp\nResult: $status")
+                if (wasRestored) {
+                    cancelNotification(context)
+                }
             }
-
-            else -> {
-                Log.e("GeofenceReceiver", "Unknown transition: $geofenceTransition")
-            }
+            else -> Log.e("GeofenceReceiver", "Unknown transition: $geofenceTransition")
         }
     }
 
-    private fun sendDebugNotification(context: Context, title: String, message: String) {
-        // 1. Permission Check
+    private fun showActiveNotification(context: Context) {
+        // CRITICAL CHECK: Don't crash if Android 13+ permission is missing
         if (!context.hasNotificationPermission()) {
-            Log.w("GeofenceReceiver", "Debug Notification skipped: No Permission")
+            Log.w("GeofenceReceiver", "Skipping notification: POST_NOTIFICATIONS permission missing")
             return
         }
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // 2. Create Channel (High Importance for Debugging so it pops up)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
-                "Debug Logs",
-                NotificationManager.IMPORTANCE_HIGH // Make it noisy for testing
+                "Active Status",
+                NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Geofence Debug Messages"
-                setShowBadge(true)
+                description = "Shows when auto-muting is active"
+                setShowBadge(false)
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        // 3. Build Notification with BigTextStyle (for multi-line logs)
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Ensure this icon exists
-            .setContentTitle(title)
-            .setContentText(message) // Short version
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message)) // Expandable long version
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(NotificationCompat.DEFAULT_ALL) // Vibrate/Sound to alert you
-            .setAutoCancel(false) // Keep it there until you dismiss it
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Auto-Muting Active")
+            .setContentText("You are in a silent zone.")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
             .build()
 
         try {
-            // Using same ID (1234) means it overwrites the previous one.
-            // If you want a HISTORY log, use `System.currentTimeMillis().toInt()` instead of `notificationId`.
             notificationManager.notify(notificationId, notification)
         } catch (e: SecurityException) {
-            Log.e("GeofenceReceiver", "Failed to notify: ${e.message}")
+            // Double safety net
+            Log.e("GeofenceReceiver", "Failed to show notification: ${e.message}")
         }
     }
 
-    private fun getTimestamp(): String {
-        return SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
+    private fun cancelNotification(context: Context) {
+        // Canceling notifications does NOT require permission
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(notificationId)
     }
 }

@@ -142,7 +142,7 @@ fun Home(
 
             PulseIndicator(
                 isActive = viewModel.isLocationMuted,
-                statusText = if (viewModel.isLocationMuted) "Auto-Muting Active" else "System Paused"
+                statusText = if (viewModel.isLocationMuted) "Auto-Muting Active" else "Inactive"
             )
 
             Spacer(modifier = Modifier.height(32.dp))

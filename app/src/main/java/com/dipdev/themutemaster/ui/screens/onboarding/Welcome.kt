@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,8 +39,6 @@ import com.dipdev.themutemaster.R
 @Composable
 fun Welcome(
     onGetStarted: () -> Unit,
-    onPrivacyClick: () -> Unit={},
-    onTermsClick: () -> Unit={}
 ) {
     var showContent by remember { mutableStateOf(false) }
 
@@ -58,7 +57,6 @@ fun Welcome(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        // 1. Get Screen Height for Responsive Layout
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,34 +65,29 @@ fun Welcome(
         ) {
             val screenHeight = maxHeight
 
-            // 2. SCROLLABLE COLUMN
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()) // Enable scrolling
-                    .heightIn(min = screenHeight),         // Force full height for spacing
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(min = screenHeight),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween // Spreads items Top/Center/Bottom
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
 
-                // --- TOP SECTION (Logo) ---
                 Box(
                     modifier = Modifier
                         .padding(top = 60.dp)
-                        .padding(bottom = 24.dp) // Safety padding for small screens
+                        .padding(bottom = 24.dp)
                 ) {
                     AnimatedVisibilityBlock(visible = showContent, delay = 100) {
                         AppLogo()
                     }
                 }
 
-                // --- MIDDLE SECTION (Hero + Text) ---
-                // We group these so they stay together in the center
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 ) {
-                    // Hero Image
                     Box(contentAlignment = Alignment.Center) {
                         PulseEffect()
                         Surface(
@@ -115,7 +108,6 @@ fun Welcome(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Title
                     AnimatedVisibilityBlock(visible = showContent, delay = 300) {
                         Text(
                             text = "Master Your Silence",
@@ -128,13 +120,12 @@ fun Welcome(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Description
                     AnimatedVisibilityBlock(visible = showContent, delay = 400) {
                         Text(
                             text = buildAnnotatedString {
                                 append("Your phone should know when to be quiet.\nAutomate your audio with ")
                                 withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                    append("smart geofences")
+                                    append("smart mute zones")
                                 }
                                 append(".")
                             },
@@ -183,7 +174,7 @@ fun Welcome(
 
                     // Legal Footer
                     AnimatedVisibilityBlock(visible = showContent, delay = 600) {
-                        LegalFooter(onPrivacyClick, onTermsClick)
+                        LegalFooter()
                     }
                 }
             }
@@ -196,10 +187,9 @@ fun Welcome(
 // ==========================================
 
 @Composable
-fun LegalFooter(
-    onPrivacyClick: () -> Unit,
-    onTermsClick: () -> Unit
-) {
+fun LegalFooter() {
+    val uriHandler = LocalUriHandler.current
+
     val annotatedString = buildAnnotatedString {
         append("By continuing, you agree to our ")
 
@@ -245,13 +235,14 @@ fun LegalFooter(
             // Check if user clicked the "TERMS" tag
             annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
                 .firstOrNull()?.let {
-                    onTermsClick()
+                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+
                 }
 
             // Check if user clicked the "PRIVACY" tag
             annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
                 .firstOrNull()?.let {
-                    onPrivacyClick()
+                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
                 }
         },
         modifier = Modifier.padding(horizontal = 16.dp)

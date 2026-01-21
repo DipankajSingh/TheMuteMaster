@@ -9,9 +9,11 @@ import com.dipdev.themutemaster.data.GeofenceManager
 import com.dipdev.themutemaster.data.LocationClient
 import com.dipdev.themutemaster.data.local.GeofenceDao
 import com.dipdev.themutemaster.data.local.GeofenceEntity
+import com.dipdev.themutemaster.data.local.PreferencesManager // Import this
 import com.dipdev.themutemaster.utils.GeofenceUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,12 +21,13 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val locationClient: LocationClient,
     private val dao: GeofenceDao,
-    private val geofenceManager: GeofenceManager
+    private val geofenceManager: GeofenceManager,
+    private val preferencesManager: PreferencesManager // 1. Inject PreferencesManager
 
 ) : ViewModel() {
 
     // --- UI STATE ---
-    var locationText by mutableStateOf<String?>(null) // Null initially
+    var locationText by mutableStateOf<String?>(null)
         private set
 
     var isLoading by mutableStateOf(false)
@@ -52,36 +55,23 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // distinctUntilChanged ensures we don't re-run logic if the list looks identical
             dao.getAllGeofences().collect { updatedList ->
-
                 val lat = currentLatitude
                 val lng = currentLongitude
 
-                // Only run logic if we actually know where we are
                 if (lat != null && lng != null) {
-
-                    // Fast Calculation (Memory only)
                     val duplicate = GeofenceUtils.findOverlappingGeofence(lat, lng, updatedList)
 
                     if (duplicate != null) {
-                        // It is saved!
                         isLocationSaved = true
                         isLocationMuted = duplicate.isEnabled
-
-                        // OPTIONAL: Only update text if it looks different to avoid flickering.
-                        // If the user renamed it to "Home", we want to show "Home", not "123 St".
                         if (duplicate.fullAddress != null && duplicate.fullAddress != locationText) {
                             locationText = duplicate.fullAddress
                         }
                     } else {
-                        // It is NOT saved (or was deleted)
-                        // If it WAS saved before, update the UI state.
                         if (isLocationSaved) {
                             isLocationSaved = false
                             isLocationMuted = false
-                            // We DO NOT touch locationText here.
-                            // Keep the address visible so the user can click "Save" again immediately.
                         }
                     }
                 }
@@ -100,8 +90,7 @@ class HomeViewModel @Inject constructor(
             isError = false
 
             try {
-                // Simulate slight delay for animation visibility (Optional, remove in prod)
-                delay(5000)
+                delay(500) // Reduced to 500ms (5000ms is too long for users!)
 
                 val location = locationClient.getCurrentLocation()
 
@@ -154,7 +143,6 @@ class HomeViewModel @Inject constructor(
         val lat = currentLatitude ?: return
         val lng = currentLongitude ?: return
 
-        // 1. INPUT VALIDATION: Stop "Locating..." from being saved as an address
         val addressToSave = when {
             locationText.isNullOrBlank() -> "Unknown Address"
             locationText == "Locating..." -> "Unknown Address"
@@ -164,36 +152,30 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 2. CREATE ENTITY ONCE
+                // 2. Get Default Radius from DataStore (Async)
+                // .first() grabs the current value and cancels the collection immediately
+                val preferredRadius = preferencesManager.defaultRadiusFlow.first()
+
                 val entity = GeofenceEntity(
                     latitude = lat,
                     longitude = lng,
                     fullAddress = addressToSave,
-                    isEnabled = true
+                    isEnabled = true,
+                    radius = preferredRadius // 3. Use the value
                 )
 
-                // 3. INSERT & GET ID (Long -> Int)
                 val newId = dao.insertGeofence(entity).toInt()
-
-                // 4. OPTIMIZATION: Copy the ID into the entity (No DB Read required)
                 val finalEntity = entity.copy(id = newId)
 
-                // 5. REGISTER GEOFENCE
-                // Now we pass the complete object directly to the manager
                 geofenceManager.addGeofence(finalEntity)
 
-                // 6. UPDATE UI
                 locationId = newId.toString()
                 isLocationSaved = true
                 isLocationMuted = true
-
-                // Optional: Update text to the sanitized version immediately
                 locationText = addressToSave
 
             } catch (e: Exception) {
-                // CRITICAL: Catch DB or Geofence errors
                 e.printStackTrace()
-                // Ideally, emit a "Save Failed" event to the UI here
             }
         }
     }
