@@ -3,17 +3,21 @@ package com.dipdev.themutemaster.ui.screens.permissions.dnd
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.outlined.Settings
@@ -66,137 +70,150 @@ fun DndPermissionScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Column(
+        // 1. Get Screen Height Constraints
+        BoxWithConstraints (
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
         ) {
-            // 1. TOP BAR (Empty here, but keeps spacing consistent)
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                // Optional: You could add a "Skip" button here if you want to allow
-                // users to enter the app without this permission (though it breaks the app).
-                Spacer(modifier = Modifier.height(32.dp))
-            }
+            val screenHeight = maxHeight
 
-            Spacer(modifier = Modifier.weight(0.1f))
-
-            // 2. HERO VISUAL (Gradient Bubble)
-            // Using Tertiary colors to signal this is a "System/Settings" action
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.tertiaryContainer,
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ),
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DoNotDisturbOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp),
-                    tint = MaterialTheme.colorScheme.tertiary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // 3. HEADLINE
-            Text(
-                text = "Master the Silence",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 4. BODY TEXT
-            Text(
-                text = "To automatically mute your phone, Android requires a special permission called 'Do Not Disturb Access'.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 24.sp
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // 5. INSTRUCTION LIST (Styled Card)
-            // We wrap this in a Surface to match Background Permission style
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        text = "Steps to Enable:",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
-
-                    DndInstructionItem(
-                        icon = Icons.Outlined.Settings,
-                        text = "Tap 'Grant Access' below to open Settings"
-                    )
-                    DndInstructionItem(
-                        icon = Icons.Outlined.TouchApp,
-                        text = "Find 'MuteMaster' and toggle it ON"
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // 6. ACTION BUTTON
-            Button(
-                onClick = { context.openDndSettings() },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary
-                )
+                    .verticalScroll(rememberScrollState()) // Enable scrolling
+                    .heightIn(min = screenHeight)          // Force full height
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // 1. TOP BAR (Empty spacer to match layout of other screens)
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 2. HERO VISUAL
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiaryContainer,
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DoNotDisturbOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 3. HEADLINE
                 Text(
-                    text = "Grant Access",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    text = "Master the Silence",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 4. BODY TEXT
+                Text(
+                    text = "To automatically mute your phone, Android requires a special permission called 'Do Not Disturb Access'.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // 5. INSTRUCTION LIST
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "Steps to Enable:",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+
+                        DndInstructionItem(
+                            icon = Icons.Outlined.Settings,
+                            text = "Tap 'Grant Access' below to open Settings"
+                        )
+                        DndInstructionItem(
+                            icon = Icons.Outlined.TouchApp,
+                            text = "Find 'MuteMaster' and toggle it ON"
+                        )
+                    }
+                }
+
+                // --- ELASTIC SPACER ---
+                // Pushes content down ONLY if there is extra space.
+                // Collapses to 0 height if screen is small.
+                Spacer(modifier = Modifier.weight(1f))
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 6. ACTION BUTTON
+                Button(
+                    onClick = { context.openDndSettings() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    )
+                ) {
+                    Text(
+                        text = "Grant Access",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Note for clarity
+                Text(
+                    text = "The app will update automatically when you return.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Note for clarity
-            Text(
-                text = "The app will update automatically when you return.",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-// --- HELPER COMPONENT (Matched to Background Screen) ---
+// --- HELPER COMPONENT ---
 @Composable
 private fun DndInstructionItem(
     icon: ImageVector,

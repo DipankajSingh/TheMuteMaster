@@ -11,6 +11,7 @@ import com.dipdev.themutemaster.data.local.GeofenceDao
 import com.dipdev.themutemaster.data.local.GeofenceEntity
 import com.dipdev.themutemaster.utils.GeofenceUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,7 +24,13 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     // --- UI STATE ---
-    var locationText by mutableStateOf<String?>("Locating...")
+    var locationText by mutableStateOf<String?>(null) // Null initially
+        private set
+
+    var isLoading by mutableStateOf(false)
+        private set
+
+    var isError by mutableStateOf(false)
         private set
 
     var isLocationSaved by mutableStateOf(false)
@@ -39,7 +46,6 @@ class HomeViewModel @Inject constructor(
         private set
     var currentLongitude by mutableStateOf<Double?>(null)
         private set
-
 
     private var lastFetchTime: Long = 0
     private val CACHE_TIMEOUT = 60 * 3000L
@@ -83,18 +89,24 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun fetchLocation(forceRefresh: Boolean=false) {
+    fun fetchLocation(forceRefresh: Boolean = false) {
         val currentTime = System.currentTimeMillis()
         if (!forceRefresh && locationText != null && (currentTime - lastFetchTime < CACHE_TIMEOUT)) {
             return
         }
+
         viewModelScope.launch {
+            isLoading = true
+            isError = false
+
             try {
-                lastFetchTime = System.currentTimeMillis()
-                locationText = "Locating..."
+                // Simulate slight delay for animation visibility (Optional, remove in prod)
+                delay(5000)
+
                 val location = locationClient.getCurrentLocation()
 
                 if (location != null) {
+                    lastFetchTime = System.currentTimeMillis()
                     currentLatitude = location.latitude
                     currentLongitude = location.longitude
 
@@ -109,7 +121,6 @@ class HomeViewModel @Inject constructor(
                         isLocationSaved = true
                         locationText = duplicate.fullAddress ?: "Unknown Address"
                         locationId = duplicate.id.toString()
-
                     } else {
                         isLocationSaved = false
                         isLocationMuted = false
@@ -118,13 +129,19 @@ class HomeViewModel @Inject constructor(
                             location.longitude
                         )
                     }
+                    isError = false
                 } else {
+                    isError = true
                     locationText = "Unable to get location. Is GPS on?"
                 }
             } catch (e: SecurityException) {
+                isError = true
                 locationText = "Location permission missing."
             } catch (e: Exception) {
+                isError = true
                 locationText = "Error: ${e.localizedMessage ?: "Unknown error"}"
+            } finally {
+                isLoading = false
             }
         }
     }

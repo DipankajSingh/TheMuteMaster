@@ -2,8 +2,10 @@ package com.dipdev.themutemaster.ui.screens.permissions.bglocation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.outlined.Settings
@@ -33,12 +35,12 @@ fun BackgroundLocationAccess(
     viewModel: BackgroundLocationAccessViewModel = viewModel(),
     onGoToSettingsClick: () -> Unit,
     onBackgroundGranted: () -> Unit,
-    onSkip:()-> Unit
+    onSkip: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
 
-    // --- Logic: Check permission when returning from Settings ---
+    // ... (Keep existing Logic/Effects) ...
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -49,7 +51,6 @@ fun BackgroundLocationAccess(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // --- Logic: Auto-navigate when granted ---
     LaunchedEffect(viewModel.backgroundLocationState) {
         if (viewModel.backgroundLocationState is BackgroundLocationAccessViewModel.PermissionState.Granted) {
             onBackgroundGranted()
@@ -59,124 +60,137 @@ fun BackgroundLocationAccess(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Column(
-            modifier = modifier
-                .padding(padding)
+        BoxWithConstraints(
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
         ) {
-            // 1. TOP BAR
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                TextButton(onClick = { onSkip() }) {
-                    Text(
-                        text = "Later",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            val screenHeight = maxHeight
 
-            Spacer(Modifier.weight(0.1f))
-
-            // 2. HERO IMAGE (Gradient Bubble with "Update/Clock" icon implying 'All the time')
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.tertiaryContainer,
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ),
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Update, // Represents "Always / Background"
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp),
-                    tint = MaterialTheme.colorScheme.tertiary
-                )
-            }
-
-            Spacer(Modifier.height(32.dp))
-
-            // 3. HEADLINE
-            Text(
-                text = "Always-On Location",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // 4. PROMINENT DISCLOSURE (Critical for Play Store)
-            Text(
-                text = "To automatically mute your device when you arrive at work, MuteMaster needs location access even when the app is closed or not in use.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 24.sp
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-            // 5. INSTRUCTION CARD (Modern Surface Look)
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "Steps to Enable:",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(16.dp))
-
-                    InstructionStep(icon = Icons.Outlined.Settings, text = "Tap 'Open Settings' below")
-                    InstructionStep(icon = Icons.Outlined.TouchApp, text = "Tap 'Permissions' → 'Location'")
-                    InstructionStep(icon = Icons.Outlined.Visibility, text = "Select 'Allow all the time'")
-                }
-            }
-
-            Spacer(Modifier.weight(1f))
-
-            // 6. ACTION BUTTON
-            Button(
-                onClick = onGoToSettingsClick,
-                modifier = Modifier
+            Column(
+                modifier = modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary
-                )
+                    .verticalScroll(rememberScrollState()) // Allow scrolling
+                    .heightIn(min = screenHeight)          // Force full height on tall screens
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+                // removed verticalArrangement = Arrangement.SpaceBetween (CAUSES SQUEEZING)
             ) {
-                Text(
-                    text = "Open Settings",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+                // 1. TOP BAR
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    TextButton(onClick = { onSkip() }) {
+                        Text(
+                            text = "Later",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
+
+                // 2. HERO IMAGE
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiaryContainer,
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Update,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+
+                Spacer(Modifier.height(32.dp))
+
+                // 3. HEADLINE & TEXT
+                Text(
+                    text = "Always-On Location",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Text(
+                    text = "To automatically mute your device when you arrive at work, MuteMaster needs location access even when the app is closed or not in use.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                // 5. INSTRUCTION CARD
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = "Steps to Enable:",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(Modifier.height(16.dp))
+
+                        InstructionStep(icon = Icons.Outlined.Settings, text = "Tap 'Open Settings' below")
+                        InstructionStep(icon = Icons.Outlined.TouchApp, text = "Tap 'Permissions' → 'Location'")
+                        InstructionStep(icon = Icons.Outlined.Visibility, text = "Select 'Allow all the time'")
+                    }
+                }
+
+                // --- KEY FIX: ---
+                // This Spacer pushes content down ONLY if there is extra space.
+                // It collapses to 0 height if screen is small, preventing squeezing.
+                Spacer(Modifier.weight(1f))
+
+                Spacer(Modifier.height(24.dp))
+
+                // 6. ACTION BUTTON
+                Button(
+                    onClick = onGoToSettingsClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    )
+                ) {
+                    Text(
+                        text = "Open Settings",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+            }
         }
     }
 }
 
-// --- Helper Composable for Instructions ---
 @Composable
 private fun InstructionStep(
     icon: ImageVector,

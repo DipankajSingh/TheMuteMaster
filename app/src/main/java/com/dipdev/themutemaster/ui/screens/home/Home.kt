@@ -2,6 +2,7 @@ package com.dipdev.themutemaster.ui.screens.home
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -47,7 +48,11 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.PinDrop
 import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.Radar
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -66,6 +71,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +80,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.dipdev.themutemaster.ui.navigation.LocalRootNavController
 import com.dipdev.themutemaster.utils.copyToClipboard
 
 @Composable
@@ -84,8 +89,9 @@ fun Home(
     criticalError: Boolean,
     onSettingsClick:()-> Unit
 ) {
+    Log.e("GeofenceManager", "test from home screen")
+
     val context = LocalContext.current
-    val rootNavController = LocalRootNavController.current
 
     // --- Permissions Logic (Unchanged) ---
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -118,28 +124,22 @@ fun Home(
     }
 
     // --- Layout Structure ---
-    Column (
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)
             .padding(top = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // We place the Header at the top
-        ModernHeader(
-            onSettingsClick = { onSettingsClick() },
-            criticalError
-        )
+        ModernHeader(onSettingsClick = { onSettingsClick() }, criticalError)
         Spacer(Modifier.height(32.dp))
-        // Main Content Container
+
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(0.5f))
 
-            // --- PULSE INDICATOR ---
             PulseIndicator(
                 isActive = viewModel.isLocationMuted,
                 statusText = if (viewModel.isLocationMuted) "Auto-Muting Active" else "System Paused"
@@ -147,11 +147,14 @@ fun Home(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- STATUS CARD ---
+            // --- UPDATED CARD ---
             LocationStatusCard(
                 locationText = viewModel.locationText,
                 isSaved = viewModel.isLocationSaved,
                 isActive = viewModel.isLocationMuted,
+                isLoading = viewModel.isLoading, // <--- NEW
+                isError = viewModel.isError,     // <--- NEW
+                onRetry = { viewModel.fetchLocation(forceRefresh = true) }, // <--- NEW
                 onCopy = {
                     viewModel.locationText?.let { text ->
                         context.copyToClipboard(text, "Location Address")
@@ -159,9 +162,7 @@ fun Home(
                 },
                 onPrimaryAction = {
                     if (!viewModel.isLocationSaved) {
-                        if (viewModel.currentLatitude != null && viewModel.currentLongitude != null) {
-                            viewModel.saveLocation()
-                        }
+                        viewModel.saveLocation()
                     } else {
                         onNavigateToManage(viewModel.locationId)
                     }
@@ -381,10 +382,16 @@ fun LocationStatusCard(
     locationText: String?,
     isSaved: Boolean,
     isActive: Boolean,
+    isLoading: Boolean, // New Param
+    isError: Boolean,   // New Param
+    onRetry: () -> Unit, // New Param
     onCopy: () -> Unit,
     onPrimaryAction: () -> Unit
 ) {
+    // Determine Status Colors
     val (statusColor, statusText, icon) = when {
+        isError -> Triple(MaterialTheme.colorScheme.error, "Location Error", Icons.Rounded.Warning)
+        isLoading -> Triple(MaterialTheme.colorScheme.tertiary, "Locating...", Icons.Rounded.Radar)
         !isSaved -> Triple(MaterialTheme.colorScheme.secondary, "Not Saved", Icons.Outlined.PinDrop)
         isActive -> Triple(MaterialTheme.colorScheme.primary, "Active Zone", Icons.Default.LocationOn)
         else -> Triple(MaterialTheme.colorScheme.tertiary, "Inactive Zone", Icons.Default.LocationOff)
@@ -400,23 +407,34 @@ fun LocationStatusCard(
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
+                // Icon Circle
                 Surface(
                     shape = CircleShape,
                     color = statusColor.copy(alpha = 0.1f),
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = statusColor,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        if (isLoading) {
+                            // Spinning Loading Icon
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = statusColor,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = statusColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
+                // Text Content
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = statusText.uppercase(),
@@ -426,13 +444,24 @@ fun LocationStatusCard(
                         letterSpacing = 1.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = locationText ?: "Locating...",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+
+                    if (isLoading) {
+                        // --- LOADING ANIMATION ---
+                        // A pulsing gray bar instead of text
+                        LoadingSkeleton()
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LoadingSkeleton(widthFraction = 0.6f)
+                    } else {
+                        // Actual Text
+                        Text(
+                            text = locationText ?: "Unknown",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
@@ -440,19 +469,36 @@ fun LocationStatusCard(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
             Spacer(modifier = Modifier.height(12.dp))
 
+            // --- ACTION BUTTONS ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = onCopy) {
-                    Icon(Icons.Default.ContentCopy, null, Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Copy", style = MaterialTheme.typography.labelLarge)
+                // LEFT BUTTON: Copy OR Retry
+                if (isError) {
+                    // ERROR STATE: Show Retry Button
+                    TextButton(onClick = onRetry) {
+                        Icon(Icons.Rounded.Refresh, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Retry", color = MaterialTheme.colorScheme.error)
+                    }
+                } else {
+                    // NORMAL STATE: Show Copy Button (Disabled if loading)
+                    TextButton(
+                        onClick = onCopy,
+                        enabled = !isLoading
+                    ) {
+                        Icon(Icons.Default.ContentCopy, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Copy", style = MaterialTheme.typography.labelLarge)
+                    }
                 }
 
+                // RIGHT BUTTON: Save/Manage (Disabled if loading OR error)
                 FilledTonalButton(
                     onClick = onPrimaryAction,
+                    enabled = !isLoading && !isError, // Locked until we have a valid location
                     contentPadding = PaddingValues(horizontal = 24.dp)
                 ) {
                     Icon(
@@ -466,4 +512,27 @@ fun LocationStatusCard(
             }
         }
     }
+}
+
+// --- 4. LOADING SKELETON (Animation) ---
+@Composable
+fun LoadingSkeleton(widthFraction: Float = 0.9f) {
+    val infiniteTransition = rememberInfiniteTransition(label = "skeleton")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(widthFraction)
+            .height(20.dp) // Height of a text line
+            .clip(RoundedCornerShape(4.dp))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = alpha))
+    )
 }

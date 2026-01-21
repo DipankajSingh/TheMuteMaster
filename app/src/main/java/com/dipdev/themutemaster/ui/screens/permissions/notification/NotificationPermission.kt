@@ -8,17 +8,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
@@ -77,7 +81,6 @@ fun NotificationPermissionScreen(
         }
     )
 
-
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -90,10 +93,7 @@ fun NotificationPermissionScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-
     // --- 2. DIALOGS ---
-
-    // A. RATIONALE DIALOG (Soft Denial)
     if (viewModel.showRationaleDialog) {
         PermissionDialog(
             title = "Notifications Required",
@@ -102,7 +102,6 @@ fun NotificationPermissionScreen(
             icon = Icons.Default.NotificationsActive,
             onActionRequest = {
                 viewModel.dismissDialogs()
-                // Launch the system prompt again
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
@@ -111,7 +110,6 @@ fun NotificationPermissionScreen(
         )
     }
 
-    // B. SETTINGS DIALOG (Permanent Denial)
     if (viewModel.showSettingsDialog) {
         PermissionDialog(
             title = "Notifications Blocked",
@@ -126,132 +124,145 @@ fun NotificationPermissionScreen(
         )
     }
 
-    // --- 3. UI LAYOUT ---
+    // --- 3. RESPONSIVE UI LAYOUT ---
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Column(
+        // 1. Get Screen Height Constraints
+        BoxWithConstraints (
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
         ) {
-            // TOP BAR
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                TextButton(onClick = onSkip) {
-                    Text(
-                        text = "Skip",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            val screenHeight = maxHeight
 
-            Spacer(modifier = Modifier.weight(0.1f))
-
-            // HERO IMAGE
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ),
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.NotificationsActive,
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // HEADLINE
-            Text(
-                text = "Don't Miss a Beat",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // BODY TEXT
-            Text(
-                text = "Since MuteMaster changes your volume automatically, it's easy to forget your phone is silent. \n\nWe strongly recommend enabling notifications so you never miss an urgent call.",
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 24.sp
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // VALUE PROPOSITION LIST
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                NotificationBenefitItem(
-                    icon = Icons.AutoMirrored.Outlined.VolumeOff,
-                    title = "Confirm Activation",
-                    desc = "Receive a quick alert when you enter a Silent Zone."
-                )
-                NotificationBenefitItem(
-                    icon = Icons.AutoMirrored.Outlined.VolumeUp,
-                    title = "Peace of Mind",
-                    desc = "Know instantly when your ringer is restored after leaving."
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // MAIN ACTION BUTTON
-            Button(
-                onClick = {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val activity = context as? Activity
-                        val needsRationale = activity?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) ?: false
-
-                        viewModel.onEnableClicked(
-                            isSystemRationaleNeeded = needsRationale,
-                            launchSystemPrompt = {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                        )
-                    } else {
-                        onPermissionGranted()
-                    }
-                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                    .verticalScroll(rememberScrollState()) // Enable scrolling
+                    .heightIn(min = screenHeight)          // Force full height
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Enable Status Alerts",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+                // TOP BAR
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    TextButton(onClick = onSkip) {
+                        Text(
+                            text = "Skip",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // HERO IMAGE
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.surfaceContainerHighest
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = null,
+                        modifier = Modifier.size(56.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // HEADLINE
+                Text(
+                    text = "Don't Miss a Beat",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // BODY TEXT
+                Text(
+                    text = "Since MuteMaster changes your volume automatically, it's easy to forget your phone is silent. \n\nWe strongly recommend enabling notifications so you never miss an urgent call.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // VALUE PROPOSITION LIST
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    NotificationBenefitItem(
+                        icon = Icons.AutoMirrored.Outlined.VolumeOff,
+                        title = "Confirm Activation",
+                        desc = "Receive a quick alert when you enter a Silent Zone."
+                    )
+                    NotificationBenefitItem(
+                        icon = Icons.AutoMirrored.Outlined.VolumeUp,
+                        title = "Peace of Mind",
+                        desc = "Know instantly when your ringer is restored after leaving."
+                    )
+                }
+
+                // Push button to bottom (Elastic Spacer)
+                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // MAIN ACTION BUTTON
+                Button(
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            val activity = context as? Activity
+                            val needsRationale = activity?.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) ?: false
+
+                            viewModel.onEnableClicked(
+                                isSystemRationaleNeeded = needsRationale,
+                                launchSystemPrompt = {
+                                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            )
+                        } else {
+                            onPermissionGranted()
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text(
+                        text = "Enable Status Alerts",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }

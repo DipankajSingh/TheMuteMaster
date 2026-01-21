@@ -1,47 +1,20 @@
 package com.dipdev.themutemaster.ui.screens.onboarding
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.InfiniteTransition
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,15 +28,18 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dipdev.themutemaster.R
 import kotlinx.coroutines.delay
+import com.dipdev.themutemaster.R
 
 @Composable
 fun Welcome(
-    onGetStarted: () -> Unit
+    onGetStarted: () -> Unit,
+    onPrivacyClick: () -> Unit={},
+    onTermsClick: () -> Unit={}
 ) {
     var showContent by remember { mutableStateOf(false) }
 
@@ -71,7 +47,6 @@ fun Welcome(
         showContent = true
     }
 
-    // 1. Background Gradient
     val brush = Brush.radialGradient(
         colors = listOf(
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
@@ -83,114 +58,134 @@ fun Welcome(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(
+        // 1. Get Screen Height for Responsive Layout
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
                 .background(brush)
                 .padding(padding)
         ) {
-            // --- 2. APP LOGO (TOP CENTER) ---
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 60.dp)
-            ) {
-                AnimatedVisibilityBlock(visible = showContent, delay = 100) {
-                    AppLogo()
-                }
-            }
+            val screenHeight = maxHeight
 
-            // --- 3. HERO SECTION (CENTERED) ---
+            // 2. SCROLLABLE COLUMN
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.Center)
-                    .offset(y = (-40).dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()) // Enable scrolling
+                    .heightIn(min = screenHeight),         // Force full height for spacing
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween // Spreads items Top/Center/Bottom
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    PulseEffect()
-                    Surface(
-                        shape = CircleShape,
-                        shadowElevation = 24.dp,
-                        tonalElevation = 8.dp,
-                        modifier = Modifier.size(140.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.appicon),
-                            contentDescription = "Logo",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp)
-                        )
+
+                // --- TOP SECTION (Logo) ---
+                Box(
+                    modifier = Modifier
+                        .padding(top = 60.dp)
+                        .padding(bottom = 24.dp) // Safety padding for small screens
+                ) {
+                    AnimatedVisibilityBlock(visible = showContent, delay = 100) {
+                        AppLogo()
                     }
                 }
-            }
 
-            // --- 4. BOTTOM SECTION (TEXT & BUTTON) ---
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Title
-                AnimatedVisibilityBlock(visible = showContent, delay = 300) {
-                    Text(
-                        text = "Master Your Silence",
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
+                // --- MIDDLE SECTION (Hero + Text) ---
+                // We group these so they stay together in the center
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                ) {
+                    // Hero Image
+                    Box(contentAlignment = Alignment.Center) {
+                        PulseEffect()
+                        Surface(
+                            shape = CircleShape,
+                            shadowElevation = 24.dp,
+                            tonalElevation = 8.dp,
+                            modifier = Modifier.size(140.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.appicon),
+                                contentDescription = "Logo",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(24.dp)
+                            )
+                        }
+                    }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(40.dp))
 
-                // Description
-                AnimatedVisibilityBlock(visible = showContent, delay = 400) {
-                    Text(
-                        text = buildAnnotatedString {
-                            append("Your phone should know when to be quiet.\nAutomate your audio with ")
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                append("smart geofences")
-                            }
-                            append(".")
-                        },
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 26.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                // Button
-                AnimatedVisibilityBlock(visible = showContent, delay = 500) {
-                    Button(
-                        onClick = onGetStarted,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(58.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-                    ) {
+                    // Title
+                    AnimatedVisibilityBlock(visible = showContent, delay = 300) {
                         Text(
-                            text = "Get Started",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            text = "Master Your Silence",
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(Modifier.width(12.dp))
-                        Icon(Icons.AutoMirrored.Rounded.ArrowForward, null)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Description
+                    AnimatedVisibilityBlock(visible = showContent, delay = 400) {
+                        Text(
+                            text = buildAnnotatedString {
+                                append("Your phone should know when to be quiet.\nAutomate your audio with ")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                                    append("smart geofences")
+                                }
+                                append(".")
+                            },
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 26.sp
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- BOTTOM SECTION (Button + Footer) ---
+                Column(
+                    modifier = Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(24.dp)) // Extra space before button
+
+                    // Button
+                    AnimatedVisibilityBlock(visible = showContent, delay = 500) {
+                        Button(
+                            onClick = onGetStarted,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(58.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                        ) {
+                            Text(
+                                text = "Get Started",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Icon(Icons.AutoMirrored.Rounded.ArrowForward, null)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Legal Footer
+                    AnimatedVisibilityBlock(visible = showContent, delay = 600) {
+                        LegalFooter(onPrivacyClick, onTermsClick)
+                    }
+                }
             }
         }
     }
@@ -199,6 +194,69 @@ fun Welcome(
 // ==========================================
 //        HELPER COMPONENTS
 // ==========================================
+
+@Composable
+fun LegalFooter(
+    onPrivacyClick: () -> Unit,
+    onTermsClick: () -> Unit
+) {
+    val annotatedString = buildAnnotatedString {
+        append("By continuing, you agree to our ")
+
+        // Tag: TERMS
+        pushStringAnnotation(tag = "TERMS", annotation = "terms")
+        withStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.SemiBold
+            )
+        ) {
+            append("Terms of Service")
+        }
+        pop()
+
+        append(" and ")
+
+        // Tag: PRIVACY
+        pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
+        withStyle(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.SemiBold
+            )
+        ) {
+            append("Privacy Policy")
+        }
+        pop()
+
+        append(".")
+    }
+
+    ClickableText(
+        text = annotatedString,
+        style = MaterialTheme.typography.labelMedium.copy(
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            lineHeight = 18.sp
+        ),
+        onClick = { offset ->
+            // Check if user clicked the "TERMS" tag
+            annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    onTermsClick()
+                }
+
+            // Check if user clicked the "PRIVACY" tag
+            annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                .firstOrNull()?.let {
+                    onPrivacyClick()
+                }
+        },
+        modifier = Modifier.padding(horizontal = 16.dp)
+    )
+}
 
 @Composable
 fun AppLogo() {
@@ -211,12 +269,12 @@ fun AppLogo() {
             contentDescription = null,
             modifier = Modifier.size(28.dp),
             tint = MaterialTheme.colorScheme.primary,
-            )
+        )
         Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 text = "MuteMaster",
                 style = androidx.compose.ui.text.TextStyle(
-                    fontFamily = FontFamily(Font(R.font.sekuya_regular)), // Ensure this font exists
+                    fontFamily = FontFamily(Font(R.font.sekuya_regular)),
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -236,7 +294,6 @@ fun AppLogo() {
 @Composable
 fun PulseEffect() {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-
     PulseRing(infiniteTransition, delay = 0)
     PulseRing(infiniteTransition, delay = 700)
     PulseRing(infiniteTransition, delay = 1400)

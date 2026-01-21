@@ -29,9 +29,9 @@ fun GlobalErrorBanner(
     val contentColor = if (isCritical) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
 
     val (title, desc) = when (error) {
-        AppError.DND_MISSING -> "Permission Revoked" to "MuteMaster cannot silence calls."
+        AppError.DND_MISSING -> "Permission Revoked" to "MuteMaster cannot silence phone."
         AppError.LOCATION_FG_MISSING,
-        AppError.LOCATION_BG_MISSING -> "Automation Stopped" to "Location access is required."
+        AppError.LOCATION_BG_MISSING -> "Automation Stopped" to "Background location required."
         AppError.NOTIFICATION_MISSING -> "Updates Paused" to "Status alerts are disabled."
     }
 
