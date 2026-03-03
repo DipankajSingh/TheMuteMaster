@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Providers } from "./providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,11 +15,19 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "The Mute Master - Take Control of Your Audio",
-  description: "The Mute Master is an elegant and lightweight utility to manage and mute your Android experience seamlessly. Get it on the Google Play Store.",
-  keywords: ["Mute Master", "Android App", "Audio Control", "Volume Manager", "Mute App"],
+  description:
+    "The Mute Master is an elegant and lightweight utility to manage and mute your Android experience seamlessly. Get it on the Google Play Store.",
+  keywords: [
+    "Mute Master",
+    "Android App",
+    "Audio Control",
+    "Volume Manager",
+    "Mute App",
+  ],
   openGraph: {
     title: "The Mute Master - Take Control of Your Audio",
-    description: "The ultimate tool to manage and mute your Android experience seamlessly.",
+    description:
+      "The ultimate tool to manage and mute your Android experience seamlessly.",
     url: "https://mutemaster.com",
     siteName: "The Mute Master",
     images: [
@@ -41,7 +50,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "The Mute Master",
-    description: "Manage your Android audio with ease. Elegant and lightweight.",
+    description:
+      "Manage your Android audio with ease. Elegant and lightweight.",
     images: ["/images/appicon.png"],
   },
 };
@@ -52,11 +62,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <link rel="icon" href="/favicon.ico" />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
