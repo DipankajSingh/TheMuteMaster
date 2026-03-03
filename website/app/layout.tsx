@@ -81,6 +81,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "The Mute Master",
   },
+  verification: {
+    google: "I0s8adF00P2S6g0j_zO8U0UX2xT0cOZAKPwwJyR5bVo",
+  },
 };
 
 export default function RootLayout({
