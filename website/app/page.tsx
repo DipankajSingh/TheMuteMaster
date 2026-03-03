@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Battery, Shield } from "lucide-react";
 import { FaAndroid } from "react-icons/fa";
+import { SiGoogleplay } from "react-icons/si";
 import { ThemeToggle } from "./components/ThemeToggle";
 
 export default function Home() {
@@ -58,6 +59,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="group relative inline-flex items-center justify-center gap-2 bg-primary text-white font-semibold text-lg px-8 py-4 rounded-full shadow-[0_8px_20px_-6px_rgba(240,81,35,0.5)] hover:bg-primary-container transition-all transform hover:-translate-y-1 active:scale-95"
             >
+              <SiGoogleplay className="w-5 h-5" />
               <span>Get it on Google Play</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -204,7 +206,7 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-primary py-24 mt-auto rounded-t-[3rem] text-white">
+      <section className="bg-primary py-24 mt-auto rounded-t-[3rem] text-black">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
             Ready to silence the distractions?
@@ -216,15 +218,16 @@ export default function Home() {
             href="https://play.google.com/store/apps/details?id=com.dipdev.themutemaster&pcampaignid=web_share"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center bg-white text-primary font-bold text-xl px-10 py-5 rounded-full shadow-xl hover:scale-105 transition-transform"
+            className="inline-flex items-center justify-center gap-3 bg-white text-black font-bold text-xl px-10 py-5 rounded-full shadow-xl hover:scale-105 transition-transform"
           >
+            <SiGoogleplay className="w-6 h-6" />
             Download from Google Play
           </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="w-full py-10 bg-primary border-t border-white/20 text-center flex flex-col items-center gap-4 text-white">
+      <footer className="w-full py-10 bg-primary border-t border-white/20 text-center flex flex-col items-center gap-4 text-black">
         <div className="flex gap-6 mb-2">
           <Link
             href="/privacy"
