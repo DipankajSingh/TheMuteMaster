@@ -2,8 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
     id("com.google.dagger.hilt.android")
 }
 
@@ -76,10 +75,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation.layout)
-    kapt("com.google.dagger:hilt-android-compiler:2.51")
+    ksp("com.google.dagger:hilt-android-compiler:2.51")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     testImplementation(libs.junit)
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+    testImplementation("org.robolectric:robolectric:4.12.1")
+    testImplementation("androidx.test:core-ktx:1.5.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -88,11 +90,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-}
-
-kapt {
-    correctErrorTypes = true
 }
