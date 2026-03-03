@@ -10,15 +10,17 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dipdev.themutemaster.R
 import com.dipdev.themutemaster.data.local.MuteStateManager
-import com.dipdev.themutemaster.utils.hasNotificationPermission // Import your utility
+import com.dipdev.themutemaster.utils.NotificationConstants
+import com.dipdev.themutemaster.utils.hasNotificationPermission
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
-    // A constant ID ensures we update/remove the SAME notification every time
-    private val notificationId = 1234
-    private val channelId = "mute_master_status_channel"
+    @Inject lateinit var muteStateManager: MuteStateManager
 
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent) ?: return
@@ -27,16 +29,10 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             return
         }
 
-        val geofenceTransition = geofencingEvent.geofenceTransition
-        val muteStateManager = MuteStateManager(context)
-
-        when (geofenceTransition) {
+        when (geofencingEvent.geofenceTransition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                // The muting happens here regardless of notification permissions
                 val wasMuted = muteStateManager.attemptMute()
-
                 if (wasMuted) {
-                    // Try to show status, but safe-check permission first
                     showActiveNotification(context)
                 } else {
                     Log.d("GeofenceReceiver", "Entered zone, but phone was already silent.")
@@ -48,12 +44,11 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                     cancelNotification(context)
                 }
             }
-            else -> Log.e("GeofenceReceiver", "Unknown transition: $geofenceTransition")
+            else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")
         }
     }
 
     private fun showActiveNotification(context: Context) {
-        // CRITICAL CHECK: Don't crash if Android 13+ permission is missing
         if (!context.hasNotificationPermission()) {
             Log.w("GeofenceReceiver", "Skipping notification: POST_NOTIFICATIONS permission missing")
             return
@@ -63,8 +58,8 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId,
-                "Active Status",
+                NotificationConstants.CHANNEL_ID,
+                NotificationConstants.CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Shows when auto-muting is active"
@@ -73,7 +68,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(context, channelId)
+        val notification = NotificationCompat.Builder(context, NotificationConstants.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Auto-Muting Active")
             .setContentText("You are in a silent zone.")
@@ -82,16 +77,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             .build()
 
         try {
-            notificationManager.notify(notificationId, notification)
+            notificationManager.notify(NotificationConstants.NOTIFICATION_ID, notification)
         } catch (e: SecurityException) {
-            // Double safety net
             Log.e("GeofenceReceiver", "Failed to show notification: ${e.message}")
         }
     }
 
     private fun cancelNotification(context: Context) {
-        // Canceling notifications does NOT require permission
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(notificationId)
+        notificationManager.cancel(NotificationConstants.NOTIFICATION_ID)
     }
 }

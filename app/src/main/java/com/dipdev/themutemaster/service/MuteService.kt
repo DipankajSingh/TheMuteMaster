@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dipdev.themutemaster.R
 import com.dipdev.themutemaster.data.local.MuteStateManager
+import com.dipdev.themutemaster.utils.NotificationConstants
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -22,8 +23,8 @@ class MuteService : Service() {
     @Inject lateinit var muteStateManager: MuteStateManager
 
     private lateinit var audioManager: AudioManager
-    private val channelId = "mute_master_status_channel"
-    private val notificationId = 1234
+    private val channelId = NotificationConstants.CHANNEL_ID
+    private val notificationId = NotificationConstants.NOTIFICATION_ID
 
     private val volumeChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -90,7 +91,7 @@ class MuteService : Service() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId, "Active Status", NotificationManager.IMPORTANCE_LOW
+                channelId, NotificationConstants.CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW
             ).apply { setShowBadge(false) }
             notificationManager.createNotificationChannel(channel)
         }
