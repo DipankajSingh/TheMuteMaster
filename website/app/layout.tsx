@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     "The Mute Master is an elegant and lightweight Android app that automatically silences your phone in quiet zones. Manage audio settings with geolocation-based automation. Download free on Google Play Store.",
   keywords: [
     "Mute Master",
+    "auto mute",
+    "mute location",
+    "silence location",
+    "location aotomation",
     "Android App",
     "Audio Control",
     "Volume Manager",
