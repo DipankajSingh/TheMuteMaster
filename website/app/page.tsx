@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Battery, Shield } from "lucide-react";
+import { MapPin, Battery, Shield, Clock } from "lucide-react";
 import { FaAndroid } from "react-icons/fa";
 import { SiGoogleplay } from "react-icons/si";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -48,8 +48,8 @@ export default function Home() {
             </span>
           </h2>
           <p className="text-lg md:text-xl max-w-lg opacity-70 leading-relaxed font-light">
-            Never worry about your phone ringing loudly at work or the library
-            again. Just pick your quiet zones, and we will handle the rest.
+            Never worry about your phone ringing loudly at work, school, or during sleep
+            again. Pick your quiet zones and schedules, and we will handle the rest.
           </p>
 
           <div className="pt-6 flex flex-col sm:flex-row gap-6 w-full justify-center md:justify-start">
@@ -106,43 +106,123 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
             {/* Feature 1 */}
             <div className="glass-panel p-8 rounded-4xl transition-all duration-300 transform hover:-translate-y-2">
               <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
                 <MapPin size={28} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold mb-3">Automatic Quiet Zones</h3>
+              <h3 className="text-2xl font-bold mb-3">Quiet Zones</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Simply drop a pin on the map. The moment you walk into your
-                selected area, your phone will automatically switch to silent or
-                vibrate.
+                Simply drop a pin on the map. Your phone mutes automatically the
+                moment you enter your selected area.
               </p>
             </div>
 
-            {/* Feature 2 */}
+            {/* Feature 2: NEW */}
             <div className="glass-panel p-8 rounded-4xl transition-all duration-300 transform hover:-translate-y-2">
               <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
-                <Battery size={28} strokeWidth={1.5} />
+                <Clock size={28} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold mb-3">Battery Friendly</h3>
+              <h3 className="text-2xl font-bold mb-3">Smart Schedules</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Our app runs efficiently in the background without constantly
-                checking the GPS, guaranteeing your battery lasts all day long.
+                Set it and forget it. Automate your silence during work hours,
+                classes, or sleep with custom repeating schedules.
               </p>
             </div>
 
             {/* Feature 3 */}
             <div className="glass-panel p-8 rounded-4xl transition-all duration-300 transform hover:-translate-y-2">
               <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
-                <Shield size={28} strokeWidth={1.5} />
+                <Battery size={28} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold mb-3">100% Private</h3>
+              <h3 className="text-2xl font-bold mb-3">Battery Efficient</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Your data stays firmly on your personal device. We do not track
-                you, and your saved locations stay completely private.
+                Optimized for Android. We use low-power geofencing to ensure
+                your battery lasts through the entire day.
               </p>
             </div>
+
+            {/* Feature 4 */}
+            <div className="glass-panel p-8 rounded-4xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
+                <Shield size={28} strokeWidth={1.5} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Privacy First</h3>
+              <p className="opacity-70 leading-relaxed font-light">
+                No tracking. No cloud. Your saved locations and schedules stay
+                encrypted locally on your personal device.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Intelligent Mute Lock Section */}
+      <section className="py-24 w-full bg-primary/5">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
+          <div className="flex-1 order-2 md:order-1 flex justify-center relative w-full">
+            <div className="relative w-64 md:w-75 aspect-9/19 shadow-2xl rounded-[2.5rem] overflow-hidden border-8 border-foreground/10 bg-background">
+              <Image
+                src="/images/screenshot-1.png"
+                alt="App Screenshot"
+                fill
+                className="object-cover"
+              />
+            </div>
+            {/* Overlay graphic indicating "Multiple Triggers" */}
+            <div className="absolute -right-4 top-1/4 bg-background p-4 rounded-2xl shadow-xl border border-foreground/10 z-20 animate-bounce-slow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <MapPin size={20} className="text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-50">Active Zone</p>
+                  <p className="text-sm font-bold">Office</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute -left-4 bottom-1/4 bg-background p-4 rounded-2xl shadow-xl border border-foreground/10 z-20 animate-bounce-slow delay-150">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <Clock size={20} className="text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-50">Active Schedule</p>
+                  <p className="text-sm font-bold">Focus Time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 order-1 md:order-2 space-y-8">
+            <h2 className="text-4xl font-bold tracking-tight">
+              Intelligent Mute Lock
+            </h2>
+            <p className="text-lg opacity-70 leading-relaxed font-light">
+              What if you're in a silent zone AND a scheduled mute starts? Our 
+              proprietary <strong>Mute Lock</strong> system ensures your phone 
+              stays silent until <em>all</em> active triggers are cleared.
+            </p>
+            <ul className="space-y-4">
+              <li className="flex gap-3 items-center">
+                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <span className="opacity-80">Overlapping triggers handled automatically</span>
+              </li>
+              <li className="flex gap-3 items-center">
+                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <span className="opacity-80">Custom media volume for each schedule</span>
+              </li>
+              <li className="flex gap-3 items-center">
+                <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <span className="opacity-80">Smart restoration of previous audio state</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -152,7 +232,7 @@ export default function Home() {
         <div className="flex flex-col md:flex-row-reverse w-full items-center gap-16">
           <div className="flex-1 space-y-8">
             <h2 className="text-4xl font-bold tracking-tight">
-              Set it up in under a minute.
+              Total Control, Zero Effort.
             </h2>
             <div className="space-y-6">
               <div className="flex gap-4 items-start">
@@ -160,10 +240,10 @@ export default function Home() {
                   1
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-1">Select a Location</h4>
+                  <h4 className="text-xl font-bold mb-1">Pick Your Triggers</h4>
                   <p className="opacity-70">
-                    Search for your office, university, or the movie theater on
-                    the map.
+                    Choose a location on the map or set a repeating time window
+                    for when you need silence.
                   </p>
                 </div>
               </div>
@@ -172,9 +252,10 @@ export default function Home() {
                   2
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-1">Choose the Rules</h4>
+                  <h4 className="text-xl font-bold mb-1">Customize the Sound</h4>
                   <p className="opacity-70">
-                    Decide if your phone should Vibrate or go completely Silent.
+                    Set per-trigger rules. Mute everything, or just the ringer 
+                    while keeping your media volume at exactly 20%.
                   </p>
                 </div>
               </div>
@@ -183,10 +264,10 @@ export default function Home() {
                   3
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold mb-1">Forget About It</h4>
+                  <h4 className="text-xl font-bold mb-1">Live Your Life</h4>
                   <p className="opacity-70">
-                    Enjoy peace of mind knowing your phone will behave
-                    appropriately everywhere you go!
+                    Your phone intelligently manages its audio state so you 
+                    never have to fumble with volume buttons again.
                   </p>
                 </div>
               </div>
