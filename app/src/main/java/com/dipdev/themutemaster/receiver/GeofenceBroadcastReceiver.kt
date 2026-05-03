@@ -31,17 +31,21 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
         when (geofencingEvent.geofenceTransition) {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                val wasMuted = muteStateManager.attemptMute()
-                if (wasMuted) {
-                    startMuteService(context)
-                } else {
-                    Log.d("GeofenceReceiver", "Entered zone, but phone was already silent.")
+                geofencingEvent.triggeringGeofences?.forEach { geofence ->
+                    val wasMuted = muteStateManager.attemptMute("GEOFENCE_${geofence.requestId}")
+                    if (wasMuted) {
+                        startMuteService(context)
+                    } else {
+                        Log.d("GeofenceReceiver", "Entered zone ${geofence.requestId}, but phone was already silent or we are already muting it.")
+                    }
                 }
             }
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                val wasRestored = muteStateManager.attemptRestore()
-                if (wasRestored) {
-                    stopMuteService(context)
+                geofencingEvent.triggeringGeofences?.forEach { geofence ->
+                    val wasRestored = muteStateManager.attemptRestore("GEOFENCE_${geofence.requestId}")
+                    if (wasRestored) {
+                        stopMuteService(context)
+                    }
                 }
             }
             else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")

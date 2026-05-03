@@ -123,12 +123,12 @@ class GeofenceManager @Inject constructor(
                     // distance[0] is in meters. If < radius, we are still inside.
                     if (distance[0] <= entity.radius) {
                         Log.d("GeofenceManager", "User was inside deleted zone. Unmuting.")
-                        safeUnmute()
+                        safeUnmute(entity.id)
                     }
                 } else {
                     Log.w("GeofenceManager", "Last location was null. Cannot verify if user is inside zone.")
                     // Optional Suggestion: You COULD force unmute here just to be safe.
-                    // safeUnmute()
+                    // safeUnmute(entity.id)
                 }
             }.addOnFailureListener {
                 Log.e("GeofenceManager", "Failed to get last location: ${it.message}")
@@ -138,8 +138,8 @@ class GeofenceManager @Inject constructor(
         }
     }
 
-    private fun safeUnmute() {
-        val wasRestored = muteStateManager.attemptRestore()
+    private fun safeUnmute(entityId: Int) {
+        val wasRestored = muteStateManager.attemptRestore("GEOFENCE_$entityId")
         if (wasRestored) {
             val intent = Intent(context, com.dipdev.themutemaster.service.MuteService::class.java)
             context.stopService(intent)

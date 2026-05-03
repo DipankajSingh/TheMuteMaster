@@ -34,7 +34,7 @@ class MuteService : Service() {
                 if (currentMode == AudioManager.RINGER_MODE_NORMAL) {
                     Log.d("MuteService", "Manual Unmute Detected. Stopping service.")
 
-                    muteStateManager.setAppMuted(false)
+                    muteStateManager.clearAllTriggers()
                     stopSelf()
                 }
             }
@@ -48,12 +48,10 @@ class MuteService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent == null && !muteStateManager.isAppMuted()) {
+        if (!muteStateManager.isAppMuted()) {
             stopSelf()
             return START_NOT_STICKY
         }
-
-        val muted = muteStateManager.attemptMute()
 
         // --- UPDATED START FOREGROUND LOGIC ---
         try {
@@ -73,10 +71,6 @@ class MuteService : Service() {
             Log.e("MuteService", "Failed to start foreground service: ${e.message}")
             // Even if foreground service fails, we are already muted, but we might get killed soon.
             // We can't do much here except avoid crashing.
-        }
-
-        if (!muted) {
-            stopSelf()
         }
 
         return START_STICKY

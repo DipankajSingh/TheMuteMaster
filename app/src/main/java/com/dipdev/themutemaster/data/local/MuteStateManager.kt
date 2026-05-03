@@ -19,25 +19,33 @@ class MuteStateManager @Inject constructor(
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     companion object {
-        private const val KEY_IS_MUTED_BY_APP = "is_muted_by_app"
+        private const val KEY_ACTIVE_TRIGGERS = "active_triggers"
         private const val KEY_ORIGINAL_RINGER = "original_ringer_mode"
         private const val KEY_ORIGINAL_MEDIA_VOLUME = "original_media_volume"
     }
 
     /**
-     * Called on Geofence ENTER.
-     * Returns TRUE if we actually muted the phone.
+     * Called on trigger ENTER.
+     * Returns TRUE if we actually took control and muted the phone for the first time.
      */
-    fun attemptMute(): Boolean {
-        // Optimization: If we already think we muted it, double check we are still in control
-        if (isAppMuted()) return true
+    fun attemptMute(triggerId: String): Boolean {
+        val triggers = getActiveTriggers().toMutableSet()
+        
+        // If we are already in control, just add the new trigger and return
+        if (triggers.isNotEmpty()) {
+            if (!triggers.contains(triggerId)) {
+                triggers.add(triggerId)
+                setActiveTriggers(triggers)
+                Log.d("MuteMaster", "Added trigger $triggerId. Active triggers: $triggers")
+            }
+            return false 
+        }
 
         val currentRinger = audioManager.ringerMode
 
         // 1. CHECK: Is the phone already Silent/Vibrate?
         if (currentRinger != AudioManager.RINGER_MODE_NORMAL) {
             Log.d("MuteMaster", "Phone already silent. Backing off.")
-            setAppMuted(false)
             return false
         }
 
@@ -67,19 +75,26 @@ class MuteStateManager @Inject constructor(
             prefs.edit().remove(KEY_ORIGINAL_MEDIA_VOLUME).apply()
         }
 
-        setAppMuted(true)
-        Log.d("MuteMaster", "MuteMaster silenced the phone.")
+        triggers.add(triggerId)
+        setActiveTriggers(triggers)
+        Log.d("MuteMaster", "MuteMaster silenced the phone via $triggerId.")
         return true
     }
 
     /**
-     * Called on Geofence EXIT.
+     * Called on trigger EXIT.
+     * Returns TRUE if we restored the volume (meaning no triggers left).
      */
-    fun attemptRestore(): Boolean {
-        if (!isAppMuted()) return false
+    fun attemptRestore(triggerId: String): Boolean {
+        val triggers = getActiveTriggers().toMutableSet()
+        if (!triggers.contains(triggerId)) return false
+        
+        triggers.remove(triggerId)
+        setActiveTriggers(triggers)
+        Log.d("MuteMaster", "Removed trigger $triggerId. Active triggers: $triggers")
 
-        // Mark session as finished immediately
-        setAppMuted(false)
+        // If there are still active triggers, DO NOT restore volume
+        if (triggers.isNotEmpty()) return false
 
         val currentRinger = audioManager.ringerMode
         if (currentRinger == AudioManager.RINGER_MODE_NORMAL) {
@@ -107,9 +122,17 @@ class MuteStateManager @Inject constructor(
     }
 
     // --- UPDATED: Now Public for Service Access ---
-    fun isAppMuted(): Boolean = prefs.getBoolean(KEY_IS_MUTED_BY_APP, false)
+    fun isAppMuted(): Boolean = getActiveTriggers().isNotEmpty()
 
-    fun setAppMuted(isMuted: Boolean) {
-        prefs.edit().putBoolean(KEY_IS_MUTED_BY_APP, isMuted).apply()
+    fun clearAllTriggers() {
+        setActiveTriggers(emptySet())
+    }
+
+    private fun getActiveTriggers(): Set<String> {
+        return prefs.getStringSet(KEY_ACTIVE_TRIGGERS, emptySet()) ?: emptySet()
+    }
+
+    private fun setActiveTriggers(triggers: Set<String>) {
+        prefs.edit().putStringSet(KEY_ACTIVE_TRIGGERS, triggers).apply()
     }
 }
