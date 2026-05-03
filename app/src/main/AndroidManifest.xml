@@ -12,8 +12,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <application
     android:name=".TheMuteMasterApp"
     android:allowBackup="true"
@@ -45,6 +45,10 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".receiver.ScheduleBroadcastReceiver"
+            android:exported="false" />
         <service
             android:name=".service.MuteService"
             android:foregroundServiceType="location"

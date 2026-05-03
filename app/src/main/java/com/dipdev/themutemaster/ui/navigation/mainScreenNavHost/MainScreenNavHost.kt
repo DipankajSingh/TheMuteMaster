@@ -49,7 +49,6 @@ import com.dipdev.themutemaster.ui.navigation.Screen
 import com.dipdev.themutemaster.ui.screens.generalSettings.GeneralSettingsScreen
 import com.dipdev.themutemaster.ui.screens.home.Home
 import com.dipdev.themutemaster.ui.screens.manageLocation.ManageLocationScreen
-import com.dipdev.themutemaster.ui.screens.mutedContacts.ComingSoonScreen
 import com.dipdev.themutemaster.ui.screens.savedLocations.SavedLocationsScreen
 import com.dipdev.themutemaster.ui.viewmodel.AppError
 import com.dipdev.themutemaster.ui.viewmodel.GlobalPermissionViewModel
@@ -67,7 +66,7 @@ fun MainScreenNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomBarItems = listOf(Screen.MutedLocations, Screen.Home, Screen.MutedContacts)
+    val bottomBarItems = listOf(Screen.MutedLocations, Screen.Home)
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -144,22 +143,6 @@ fun MainScreenNavHost(
                     )
                 }
 
-                composable(Screen.MutedContacts.route) {
-                    // 2. Pass the navigation callback to the screen
-                    ComingSoonScreen(
-                        onClose = {
-                            // Navigate back to Home when X is clicked
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-
                 composable(Screen.GeneralSettings.route){ GeneralSettingsScreen(onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -200,8 +183,7 @@ fun MainScreenNavHost(
                 )
             }*/
 // 3. UPDATED LOGIC: Hide bar if we are on MutedContacts
-            val showBottomBar = bottomBarItems.any { it.route == currentRoute } &&
-                    currentRoute != Screen.MutedContacts.route
+            val showBottomBar = bottomBarItems.any { it.route == currentRoute }
 
             AnimatedVisibility(
                 visible = showBottomBar, // Use the new boolean

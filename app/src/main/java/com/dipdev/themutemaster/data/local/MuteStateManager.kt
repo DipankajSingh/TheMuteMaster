@@ -28,57 +28,57 @@ class MuteStateManager @Inject constructor(
      * Called on trigger ENTER.
      * Returns TRUE if we actually took control and muted the phone for the first time.
      */
-    fun attemptMute(triggerId: String): Boolean {
+    fun attemptMute(triggerId: String, profile: SoundProfile? = null): Boolean {
         val triggers = getActiveTriggers().toMutableSet()
         
-        // If we are already in control, just add the new trigger and return
-        if (triggers.isNotEmpty()) {
-            if (!triggers.contains(triggerId)) {
-                triggers.add(triggerId)
-                setActiveTriggers(triggers)
-                Log.d("MuteMaster", "Added trigger $triggerId. Active triggers: $triggers")
+        // Determine the profile to apply
+        val ringerModeToApply = profile?.ringerMode ?: AudioManager.RINGER_MODE_VIBRATE
+        val muteMedia = profile?.muteMedia ?: runBlocking { preferencesManager.muteMediaVolumeFlow.first() }
+        val customMediaVol = profile?.customMediaVolumePercent
+
+        if (triggers.isEmpty()) {
+            val currentRinger = audioManager.ringerMode
+
+            // CHECK: Is the phone already Silent/Vibrate?
+            if (ringerModeToApply != null && currentRinger != AudioManager.RINGER_MODE_NORMAL) {
+                Log.d("MuteMaster", "Phone already silent. Backing off.")
+                return false
             }
-            return false 
-        }
 
-        val currentRinger = audioManager.ringerMode
-
-        // 1. CHECK: Is the phone already Silent/Vibrate?
-        if (currentRinger != AudioManager.RINGER_MODE_NORMAL) {
-            Log.d("MuteMaster", "Phone already silent. Backing off.")
-            return false
-        }
-
-        // 2. ACTION: Phone is noisy. We take control.
-        prefs.edit().putInt(KEY_ORIGINAL_RINGER, currentRinger).apply()
-
-        // Use VIBRATE to avoid DND permission issues
-        audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
-
-        // Mute Media Volume if preference is enabled
-        val muteMedia = runBlocking { preferencesManager.muteMediaVolumeFlow.first() }
-        Log.d("MuteMaster", "muteMediaVolume preference is: $muteMedia")
-        if (muteMedia) {
-            val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            Log.d("MuteMaster", "Current media volume: $currentMediaVol")
-            prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
+            // ACTION: Save original states before taking control
+            prefs.edit().putInt(KEY_ORIGINAL_RINGER, currentRinger).apply()
             
-            // Try both adjustStreamVolume and setStreamVolume to ensure muting
+            val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
+        }
+
+        // Apply Sound Profile
+        if (ringerModeToApply != null) {
+            audioManager.ringerMode = ringerModeToApply
+        }
+
+        if (muteMedia) {
             try {
                 audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
             } catch (e: Exception) {
                 Log.e("MuteMaster", "Failed adjustStreamVolume: ${e.message}")
             }
             audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
-            Log.d("MuteMaster", "Media volume set to 0.")
-        } else {
-            prefs.edit().remove(KEY_ORIGINAL_MEDIA_VOLUME).apply()
+            Log.d("MuteMaster", "Media volume muted.")
+        } else if (customMediaVol != null) {
+            val maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            val targetVol = (maxVol * (customMediaVol / 100f)).toInt()
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVol, 0)
+            Log.d("MuteMaster", "Media volume set to custom level: $targetVol")
         }
 
-        triggers.add(triggerId)
-        setActiveTriggers(triggers)
-        Log.d("MuteMaster", "MuteMaster silenced the phone via $triggerId.")
-        return true
+        if (!triggers.contains(triggerId)) {
+            triggers.add(triggerId)
+            setActiveTriggers(triggers)
+            Log.d("MuteMaster", "Added trigger $triggerId. Active triggers: $triggers")
+        }
+
+        return triggers.size == 1
     }
 
     /**

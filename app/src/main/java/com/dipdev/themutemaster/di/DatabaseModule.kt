@@ -10,6 +10,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+import com.dipdev.themutemaster.data.local.ScheduleDao
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
@@ -21,12 +23,20 @@ object DatabaseModule {
             app,
             GeofenceDatabase::class.java,
             "geofence_db.db"
-        ).build()
+        )
+        .addMigrations(GeofenceDatabase.MIGRATION_1_2)
+        .build()
     }
 
     @Provides
     @Singleton
     fun provideDao(db: GeofenceDatabase): GeofenceDao {
         return db.dao
+    }
+
+    @Provides
+    @Singleton
+    fun provideScheduleDao(db: GeofenceDatabase): ScheduleDao {
+        return db.scheduleDao
     }
 }

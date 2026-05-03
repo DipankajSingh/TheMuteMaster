@@ -19,13 +19,8 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // ADD THIS: Tell Room where to save the schema JSON files
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf(
-                    "room.schemaLocation" to "$projectDir/schemas"
-                )
-            }
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
         }
 
     }
