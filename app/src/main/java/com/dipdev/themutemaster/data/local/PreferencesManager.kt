@@ -21,6 +21,7 @@ class PreferencesManager @Inject constructor(
     companion object {
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_DEFAULT_RADIUS = floatPreferencesKey("default_radius")
+        val KEY_MUTE_MEDIA_VOLUME = androidx.datastore.preferences.core.booleanPreferencesKey("mute_media_volume")
     }
 
     // --- READ ---
@@ -51,6 +52,16 @@ class PreferencesManager @Inject constructor(
     suspend fun setDefaultRadius(radius: Float) {
         dataStore.edit { preferences ->
             preferences[KEY_DEFAULT_RADIUS] = radius
+        }
+    }
+
+    val muteMediaVolumeFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_MUTE_MEDIA_VOLUME] ?: false
+    }
+
+    suspend fun setMuteMediaVolume(mute: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_MUTE_MEDIA_VOLUME] = mute
         }
     }
 }

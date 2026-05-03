@@ -33,7 +33,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             Geofence.GEOFENCE_TRANSITION_ENTER -> {
                 val wasMuted = muteStateManager.attemptMute()
                 if (wasMuted) {
-                    showActiveNotification(context)
+                    startMuteService(context)
                 } else {
                     Log.d("GeofenceReceiver", "Entered zone, but phone was already silent.")
                 }
@@ -41,50 +41,28 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             Geofence.GEOFENCE_TRANSITION_EXIT -> {
                 val wasRestored = muteStateManager.attemptRestore()
                 if (wasRestored) {
-                    cancelNotification(context)
+                    stopMuteService(context)
                 }
             }
             else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")
         }
     }
 
-    private fun showActiveNotification(context: Context) {
-        if (!context.hasNotificationPermission()) {
-            Log.w("GeofenceReceiver", "Skipping notification: POST_NOTIFICATIONS permission missing")
-            return
-        }
-
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                NotificationConstants.CHANNEL_ID,
-                NotificationConstants.CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Shows when auto-muting is active"
-                setShowBadge(false)
-            }
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        val notification = NotificationCompat.Builder(context, NotificationConstants.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Auto-Muting Active")
-            .setContentText("You are in a silent zone.")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .build()
-
+    private fun startMuteService(context: Context) {
         try {
-            notificationManager.notify(NotificationConstants.NOTIFICATION_ID, notification)
-        } catch (e: SecurityException) {
-            Log.e("GeofenceReceiver", "Failed to show notification: ${e.message}")
+            val intent = Intent(context, com.dipdev.themutemaster.service.MuteService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        } catch (e: Exception) {
+            Log.e("GeofenceReceiver", "Failed to start MuteService: ${e.message}")
         }
     }
 
-    private fun cancelNotification(context: Context) {
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancel(NotificationConstants.NOTIFICATION_ID)
+    private fun stopMuteService(context: Context) {
+        val intent = Intent(context, com.dipdev.themutemaster.service.MuteService::class.java)
+        context.stopService(intent)
     }
 }

@@ -56,16 +56,23 @@ class MuteService : Service() {
         val muted = muteStateManager.attemptMute()
 
         // --- UPDATED START FOREGROUND LOGIC ---
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ requires the type to match the Manifest
-            startForeground(
-                notificationId,
-                createNotification(),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            )
-        } else {
-            // Older versions just take the ID and Notification
-            startForeground(notificationId, createNotification())
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Android 10+ requires the type to match the Manifest
+                androidx.core.app.ServiceCompat.startForeground(
+                    this,
+                    notificationId,
+                    createNotification(),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                )
+            } else {
+                // Older versions just take the ID and Notification
+                startForeground(notificationId, createNotification())
+            }
+        } catch (e: Exception) {
+            Log.e("MuteService", "Failed to start foreground service: ${e.message}")
+            // Even if foreground service fails, we are already muted, but we might get killed soon.
+            // We can't do much here except avoid crashing.
         }
 
         if (!muted) {

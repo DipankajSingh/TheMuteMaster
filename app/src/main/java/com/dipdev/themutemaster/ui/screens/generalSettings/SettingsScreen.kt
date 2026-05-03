@@ -10,6 +10,7 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import com.dipdev.themutemaster.data.local.AppThemeMode
 import com.dipdev.themutemaster.ui.components.CustomTopBar
 import com.dipdev.themutemaster.ui.components.SettingsAction
 import com.dipdev.themutemaster.ui.components.SettingsGroup
+import com.dipdev.themutemaster.ui.components.SettingsSwitch
 
 @Composable
 fun GeneralSettingsScreen(
@@ -34,6 +36,7 @@ fun GeneralSettingsScreen(
     // 1. Observe State from ViewModel
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val defaultRadius by viewModel.defaultRadius.collectAsStateWithLifecycle()
+    val muteMediaVolume by viewModel.muteMediaVolume.collectAsStateWithLifecycle()
 
     // 2. Local State for Dialogs
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -76,6 +79,16 @@ fun GeneralSettingsScreen(
                     title = "App Theme",
                     subtitle = themeSubtitle,
                     onClick = { showThemeDialog = true }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+
+                SettingsSwitch(
+                    icon = Icons.Rounded.VolumeOff,
+                    title = "Mute Media Volume",
+                    subtitle = "Also silence music, videos, and games",
+                    checked = muteMediaVolume,
+                    onCheckedChange = { viewModel.setMuteMediaVolume(it) }
                 )
             }
 

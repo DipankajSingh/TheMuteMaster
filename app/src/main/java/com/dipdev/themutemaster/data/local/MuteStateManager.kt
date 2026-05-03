@@ -4,12 +4,16 @@ import android.content.Context
 import android.media.AudioManager
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.dipdev.themutemaster.data.local.PreferencesManager
 
 @Singleton
 class MuteStateManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val preferencesManager: PreferencesManager
 ) {
     private val prefs = context.getSharedPreferences("mute_state", Context.MODE_PRIVATE)
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -17,6 +21,7 @@ class MuteStateManager @Inject constructor(
     companion object {
         private const val KEY_IS_MUTED_BY_APP = "is_muted_by_app"
         private const val KEY_ORIGINAL_RINGER = "original_ringer_mode"
+        private const val KEY_ORIGINAL_MEDIA_VOLUME = "original_media_volume"
     }
 
     /**
@@ -42,6 +47,26 @@ class MuteStateManager @Inject constructor(
         // Use VIBRATE to avoid DND permission issues
         audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
 
+        // Mute Media Volume if preference is enabled
+        val muteMedia = runBlocking { preferencesManager.muteMediaVolumeFlow.first() }
+        Log.d("MuteMaster", "muteMediaVolume preference is: $muteMedia")
+        if (muteMedia) {
+            val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            Log.d("MuteMaster", "Current media volume: $currentMediaVol")
+            prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
+            
+            // Try both adjustStreamVolume and setStreamVolume to ensure muting
+            try {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
+            } catch (e: Exception) {
+                Log.e("MuteMaster", "Failed adjustStreamVolume: ${e.message}")
+            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0)
+            Log.d("MuteMaster", "Media volume set to 0.")
+        } else {
+            prefs.edit().remove(KEY_ORIGINAL_MEDIA_VOLUME).apply()
+        }
+
         setAppMuted(true)
         Log.d("MuteMaster", "MuteMaster silenced the phone.")
         return true
@@ -63,6 +88,21 @@ class MuteStateManager @Inject constructor(
 
         val original = prefs.getInt(KEY_ORIGINAL_RINGER, AudioManager.RINGER_MODE_NORMAL)
         audioManager.ringerMode = original
+
+        // Restore Media Volume if it was saved
+        if (prefs.contains(KEY_ORIGINAL_MEDIA_VOLUME)) {
+            val originalMedia = prefs.getInt(KEY_ORIGINAL_MEDIA_VOLUME, 0)
+            
+            try {
+                audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+            } catch (e: Exception) {
+                Log.e("MuteMaster", "Failed adjustStreamVolume unmute: ${e.message}")
+            }
+            
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, originalMedia, 0)
+            prefs.edit().remove(KEY_ORIGINAL_MEDIA_VOLUME).apply()
+        }
+
         return true // We restored it
     }
 

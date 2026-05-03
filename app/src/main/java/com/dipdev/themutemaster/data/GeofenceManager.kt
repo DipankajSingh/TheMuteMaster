@@ -22,7 +22,8 @@ import javax.inject.Singleton
 
 @Singleton
 class GeofenceManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val muteStateManager: com.dipdev.themutemaster.data.local.MuteStateManager
 ) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -137,19 +138,11 @@ class GeofenceManager @Inject constructor(
         }
     }
 
-    /**
-     * Safely attempts to set Ringer Mode to Normal.
-     * Prevents crashes if DND Policy Access is missing.
-     */
     private fun safeUnmute() {
-        if (notificationManager.isNotificationPolicyAccessGranted) {
-            try {
-                audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
-            } catch (e: Exception) {
-                Log.e("GeofenceManager", "Failed to set ringer mode: ${e.message}")
-            }
-        } else {
-            Log.e("GeofenceManager", "Cannot unmute: Do Not Disturb access missing.")
+        val wasRestored = muteStateManager.attemptRestore()
+        if (wasRestored) {
+            val intent = Intent(context, com.dipdev.themutemaster.service.MuteService::class.java)
+            context.stopService(intent)
         }
     }
 

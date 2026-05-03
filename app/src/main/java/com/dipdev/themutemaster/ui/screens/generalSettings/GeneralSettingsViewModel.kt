@@ -31,6 +31,13 @@ class GeneralSettingsViewModel @Inject constructor(
             initialValue = 100f
         )
 
+    val muteMediaVolume: StateFlow<Boolean> = preferencesManager.muteMediaVolumeFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     // 2. Updated: Sets the Enum mode
     fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {
@@ -41,6 +48,12 @@ class GeneralSettingsViewModel @Inject constructor(
     fun updateRadius(newRadius: Float) {
         viewModelScope.launch {
             preferencesManager.setDefaultRadius(newRadius)
+        }
+    }
+
+    fun setMuteMediaVolume(mute: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setMuteMediaVolume(mute)
         }
     }
 }
