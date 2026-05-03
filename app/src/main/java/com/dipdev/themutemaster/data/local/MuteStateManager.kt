@@ -47,10 +47,10 @@ class MuteStateManager @Inject constructor(
             prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
 
             // Only change ringer if the phone isn't already silent/vibrate
-            if (currentRinger == AudioManager.RINGER_MODE_NORMAL && ringerModeToApply != null) {
+            if (currentRinger == AudioManager.RINGER_MODE_NORMAL) {
                 audioManager.ringerMode = ringerModeToApply
             }
-        } else if (ringerModeToApply != null) {
+        } else {
             // Additional trigger — still apply if a more restrictive mode is needed
             audioManager.ringerMode = ringerModeToApply
         }
