@@ -6,8 +6,8 @@ export default function StructuredData() {
     "@type": "SoftwareApplication",
     name: "The Mute Master",
     description:
-      "An elegant Android app that automatically silences your phone in quiet zones using geolocation.",
-    url: "https://mutemaster.com",
+      "An elegant Android app that automatically silences your phone in quiet zones or on a custom schedule using smart automation.",
+    url: "https://dipankajsingh.github.io/MuteMaster/",
     applicationCategory: "Productivity",
     offers: {
       "@type": "Offer",
