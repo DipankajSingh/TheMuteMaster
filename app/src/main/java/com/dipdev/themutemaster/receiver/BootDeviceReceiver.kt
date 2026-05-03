@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import com.dipdev.themutemaster.data.GeofenceManager
 import com.dipdev.themutemaster.data.local.GeofenceDao
+import com.dipdev.themutemaster.data.local.ScheduleDao
+import com.dipdev.themutemaster.utils.AlarmScheduler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,17 +22,27 @@ class BootDeviceReceiver : BroadcastReceiver() {
     @Inject
     lateinit var dao: GeofenceDao
 
+    @Inject
+    lateinit var scheduleDao: ScheduleDao
+
+    @Inject
+    lateinit var alarmScheduler: AlarmScheduler
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
 
             // We need a Coroutine to read from the DB
             CoroutineScope(Dispatchers.IO).launch {
-                // Get all active locations
+                // Re-register all active geofences
                 val activeGeofences = dao.getAllEnabledGeofencesOneShot()
-
-                // Re-register them all
                 activeGeofences.forEach { geofence ->
                     geofenceManager.addGeofence(geofence)
+                }
+
+                // Re-schedule all enabled time schedules (alarms are wiped on reboot)
+                val enabledSchedules = scheduleDao.getEnabledSchedules()
+                enabledSchedules.forEach { schedule ->
+                    alarmScheduler.schedule(schedule)
                 }
             }
         }

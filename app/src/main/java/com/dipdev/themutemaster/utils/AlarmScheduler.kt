@@ -10,7 +10,12 @@ import com.dipdev.themutemaster.data.local.ScheduleEntity
 import com.dipdev.themutemaster.receiver.ScheduleBroadcastReceiver
 import java.util.Calendar
 
-class AlarmScheduler(private val context: Context) {
+import javax.inject.Inject
+import dagger.hilt.android.qualifiers.ApplicationContext
+
+class AlarmScheduler @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 

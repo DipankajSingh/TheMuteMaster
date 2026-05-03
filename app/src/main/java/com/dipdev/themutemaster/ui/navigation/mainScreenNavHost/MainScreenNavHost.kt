@@ -66,7 +66,7 @@ fun MainScreenNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomBarItems = listOf(Screen.MutedLocations, Screen.Home)
+    val bottomBarItems = listOf(Screen.MutedLocations, Screen.Home, Screen.Schedules)
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -143,6 +143,15 @@ fun MainScreenNavHost(
                     )
                 }
 
+                composable(Screen.Schedules.route) {
+                    com.dipdev.themutemaster.ui.screens.schedules.SchedulesScreen(
+                        onNavigateToEdit = { id ->
+                            navController.navigate(Screen.ManageSchedule.createRoute(id))
+                        },
+                        criticalError = criticalError != null
+                    )
+                }
+
                 composable(Screen.GeneralSettings.route){ GeneralSettingsScreen(onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -165,6 +174,26 @@ fun MainScreenNavHost(
                         onSave = { navController.popBackStack() },
                         onDelete = { navController.popBackStack() },
                         criticalError=criticalError!=null
+                    )
+                }
+
+                composable(
+                    route = Screen.ManageSchedule.route,
+                    arguments = listOf(
+                        navArgument("id") { type = NavType.StringType; nullable = true; defaultValue = null }
+                    ),
+                    enterTransition = {
+                        slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(400))
+                    },
+                    popExitTransition = {
+                        slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(400))
+                    }
+                ) {
+                    com.dipdev.themutemaster.ui.screens.schedules.AddScheduleScreen(
+                        onBack = { navController.popBackStack() },
+                        onSave = { navController.popBackStack() },
+                        onDelete = { navController.popBackStack() },
+                        criticalError = criticalError != null
                     )
                 }
             }
