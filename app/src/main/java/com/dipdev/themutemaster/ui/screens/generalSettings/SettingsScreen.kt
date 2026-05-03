@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Radar
@@ -19,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dipdev.themutemaster.data.local.AppThemeMode
 import com.dipdev.themutemaster.ui.components.CustomTopBar
@@ -84,7 +85,7 @@ fun GeneralSettingsScreen(
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
 
                 SettingsSwitch(
-                    icon = Icons.Rounded.VolumeOff,
+                    icon = Icons.AutoMirrored.Rounded.VolumeOff,
                     title = "Mute Media Volume",
                     subtitle = "Also silence music, videos, and games",
                     checked = muteMediaVolume,
@@ -118,25 +119,17 @@ fun GeneralSettingsScreen(
                     icon = Icons.Rounded.Security,
                     title = "Privacy Policy",
                     onClick = {
-                        // Replace with your actual URL
                         uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
-
-                SettingsAction(
-                    icon = Icons.Rounded.Info,
-                    title = "About MuteMaster",
-                    subtitle = "Version ${BuildConfig.VERSION_NAME}",
-                    onClick = { /* TODO: Show About Dialog */ }
-                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Footer
             Text(
-                text = "Made with ❤️ by Dipankaj",
+                text = "Made with ❤️ by DipDev Labs",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.fillMaxWidth(),

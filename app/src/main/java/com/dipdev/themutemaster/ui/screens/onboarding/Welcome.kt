@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
@@ -23,13 +23,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -193,58 +196,54 @@ fun LegalFooter() {
     val annotatedString = buildAnnotatedString {
         append("By continuing, you agree to our ")
 
-        // Tag: TERMS
-        pushStringAnnotation(tag = "TERMS", annotation = "terms")
-        withStyle(
-            style = SpanStyle(
-                color = MaterialTheme.colorScheme.primary,
-                textDecoration = TextDecoration.Underline,
-                fontWeight = FontWeight.SemiBold
+        withLink(
+            LinkAnnotation.Clickable(
+                tag = "TERMS",
+                linkInteractionListener = {
+                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+                },
+                styles = TextLinkStyles(
+                    style = SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
             )
         ) {
             append("Terms of Service")
         }
-        pop()
 
         append(" and ")
 
-        // Tag: PRIVACY
-        pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-        withStyle(
-            style = SpanStyle(
-                color = MaterialTheme.colorScheme.primary,
-                textDecoration = TextDecoration.Underline,
-                fontWeight = FontWeight.SemiBold
+        withLink(
+            LinkAnnotation.Clickable(
+                tag = "PRIVACY",
+                linkInteractionListener = {
+                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+                },
+                styles = TextLinkStyles(
+                    style = SpanStyle(
+                        color = MaterialTheme.colorScheme.primary,
+                        textDecoration = TextDecoration.Underline,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
             )
         ) {
             append("Privacy Policy")
         }
-        pop()
 
         append(".")
     }
 
-    ClickableText(
+    Text(
         text = annotatedString,
         style = MaterialTheme.typography.labelMedium.copy(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             lineHeight = 18.sp
         ),
-        onClick = { offset ->
-            // Check if user clicked the "TERMS" tag
-            annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
-                .firstOrNull()?.let {
-                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
-
-                }
-
-            // Check if user clicked the "PRIVACY" tag
-            annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
-                .firstOrNull()?.let {
-                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
-                }
-        },
         modifier = Modifier.padding(horizontal = 16.dp)
     )
 }
