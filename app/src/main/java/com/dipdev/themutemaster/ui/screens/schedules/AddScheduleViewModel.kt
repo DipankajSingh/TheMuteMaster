@@ -60,7 +60,8 @@ class AddScheduleViewModel @Inject constructor(
         activeDays = updated
     }
 
-    fun saveChanges() {
+    fun saveChanges(): Boolean {
+        if (activeDays.isEmpty()) return false // At least one day required
         val daysStr = activeDays.sorted().joinToString(",")
         val schedule = ScheduleEntity(
             id = existingSchedule?.id ?: 0,
@@ -89,6 +90,7 @@ class AddScheduleViewModel @Inject constructor(
                 }
             }
         }
+        return true
     }
 
     fun deleteSchedule() {

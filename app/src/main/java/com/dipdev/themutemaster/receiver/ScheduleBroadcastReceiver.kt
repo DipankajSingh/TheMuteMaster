@@ -19,6 +19,7 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
 
     @Inject lateinit var muteStateManager: MuteStateManager
     @Inject lateinit var scheduleDao: ScheduleDao
+    @Inject lateinit var alarmScheduler: AlarmScheduler
 
     companion object {
         const val EXTRA_SCHEDULE_ID = "extra_schedule_id"
@@ -61,7 +62,6 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
             }
 
             // Reschedule the alarm for the next week/occurrence
-            val alarmScheduler = AlarmScheduler(context)
             alarmScheduler.schedule(schedule)
         }
     }

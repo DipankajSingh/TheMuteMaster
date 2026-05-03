@@ -284,7 +284,8 @@ fun formatTimeMins(mins: Int): String {
 fun formatDaysOfWeek(daysStr: String): String {
     if (daysStr.isEmpty()) return "Once"
     
-    val activeDays = daysStr.split(",").mapNotNull { it.toIntOrNull() }
+    val activeDays = daysStr.split(",").mapNotNull { it.toIntOrNull() }.filter { it in 1..7 }
+    if (activeDays.isEmpty()) return "Once"
     if (activeDays.size == 7) return "Every day"
     
     val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")

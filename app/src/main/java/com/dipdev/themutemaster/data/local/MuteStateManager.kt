@@ -26,37 +26,36 @@ class MuteStateManager @Inject constructor(
 
     /**
      * Called on trigger ENTER.
-     * Returns TRUE if we actually took control and muted the phone for the first time.
+     * Returns TRUE if this was the first trigger (we took control).
+     * The trigger is ALWAYS registered so that attemptRestore works correctly.
      */
     fun attemptMute(triggerId: String, profile: SoundProfile? = null): Boolean {
         val triggers = getActiveTriggers().toMutableSet()
-        
+        val isFirstTrigger = triggers.isEmpty()
+
         // Determine the profile to apply
         val ringerModeToApply = profile?.ringerMode ?: AudioManager.RINGER_MODE_VIBRATE
         val muteMedia = profile?.muteMedia ?: runBlocking { preferencesManager.muteMediaVolumeFlow.first() }
         val customMediaVol = profile?.customMediaVolumePercent
 
-        if (triggers.isEmpty()) {
+        if (isFirstTrigger) {
             val currentRinger = audioManager.ringerMode
 
-            // CHECK: Is the phone already Silent/Vibrate?
-            if (ringerModeToApply != null && currentRinger != AudioManager.RINGER_MODE_NORMAL) {
-                Log.d("MuteMaster", "Phone already silent. Backing off.")
-                return false
-            }
-
-            // ACTION: Save original states before taking control
+            // Save original states BEFORE we change anything
             prefs.edit().putInt(KEY_ORIGINAL_RINGER, currentRinger).apply()
-            
             val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
             prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
-        }
 
-        // Apply Sound Profile
-        if (ringerModeToApply != null) {
+            // Only change ringer if the phone isn't already silent/vibrate
+            if (currentRinger == AudioManager.RINGER_MODE_NORMAL && ringerModeToApply != null) {
+                audioManager.ringerMode = ringerModeToApply
+            }
+        } else if (ringerModeToApply != null) {
+            // Additional trigger — still apply if a more restrictive mode is needed
             audioManager.ringerMode = ringerModeToApply
         }
 
+        // Apply media settings
         if (muteMedia) {
             try {
                 audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0)
@@ -78,7 +77,7 @@ class MuteStateManager @Inject constructor(
             Log.d("MuteMaster", "Added trigger $triggerId. Active triggers: $triggers")
         }
 
-        return triggers.size == 1
+        return isFirstTrigger
     }
 
     /**

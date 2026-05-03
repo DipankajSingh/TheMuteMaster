@@ -85,7 +85,7 @@ class AlarmScheduler @Inject constructor(
         }
         
         // Use a unique request code by combining ID and start/end state
-        val requestCode = (scheduleEntity.id * 10) + (if (isStart) 1 else 0)
+        val requestCode = (scheduleEntity.id * 2) + (if (isStart) 1 else 0)
 
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
