@@ -29,6 +29,12 @@ export default function Home() {
           >
             Privacy Policy
           </Link>
+          <Link
+            href="/terms"
+            className="text-sm font-medium opacity-70 hover:opacity-100 hover:text-primary transition-colors"
+          >
+            Terms
+          </Link>
           <ThemeToggle />
         </nav>
       </header>
@@ -84,6 +90,7 @@ export default function Home() {
               src="/images/screenshot-1.png"
               alt="The Mute Master App Screenshot"
               fill
+              sizes="(max-width: 768px) 100vw, 320px"
               className="object-cover"
               priority
             />
@@ -112,10 +119,9 @@ export default function Home() {
               <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
                 <MapPin size={28} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold mb-3">Quiet Zones</h3>
+              <h3 className="text-2xl font-bold mb-3">Geofencing & Quiet Zones</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Simply drop a pin on the map. Your phone mutes automatically the
-                moment you enter your selected area.
+                Simply drop a pin on the map to create a geofenced area. Your phone triggers Auto-muting instantly the moment you enter your selected location, keeping distractions at bay.
               </p>
             </div>
 
@@ -124,10 +130,9 @@ export default function Home() {
               <div className="icon-container w-14 h-14 flex items-center justify-center rounded-2xl mb-6 mx-auto md:mx-0">
                 <Clock size={28} strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl font-bold mb-3">Smart Schedules</h3>
+              <h3 className="text-2xl font-bold mb-3">Advanced Scheduling</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Set it and forget it. Automate your silence during work hours,
-                classes, or sleep with custom repeating schedules.
+                Set it and forget it. Automate your silence during work hours, classes, or sleep with custom repeating schedules. Auto-muting ensures you are never disturbed.
               </p>
             </div>
 
@@ -138,8 +143,7 @@ export default function Home() {
               </div>
               <h3 className="text-2xl font-bold mb-3">Battery Efficient</h3>
               <p className="opacity-70 leading-relaxed font-light">
-                Optimized for Android. We use low-power geofencing to ensure
-                your battery lasts through the entire day.
+                Optimized for Android. We use highly optimized, low-power geofencing technology to ensure your battery easily lasts through the entire day while still Auto-muting accurately.
               </p>
             </div>
 
@@ -167,6 +171,7 @@ export default function Home() {
                 src="/images/screenshot-1.png"
                 alt="App Screenshot"
                 fill
+                sizes="(max-width: 768px) 100vw, 300px"
                 className="object-cover"
               />
             </div>
@@ -199,7 +204,7 @@ export default function Home() {
               Intelligent Mute Lock
             </h2>
             <p className="text-lg opacity-70 leading-relaxed font-light">
-              What if you're in a silent zone AND a scheduled mute starts? Our 
+              What if you&apos;re in a silent zone AND a scheduled mute starts? Our 
               proprietary <strong>Mute Lock</strong> system ensures your phone 
               stays silent until <em>all</em> active triggers are cleared.
             </p>
@@ -279,6 +284,7 @@ export default function Home() {
                 src="/images/screenshot-4.png"
                 alt="Adding a new location"
                 fill
+                sizes="(max-width: 768px) 100vw, 300px"
                 className="object-cover"
               />
             </div>
@@ -315,6 +321,12 @@ export default function Home() {
             className="opacity-80 hover:opacity-100 transition-opacity font-medium"
           >
             Privacy Policy
+          </Link>
+          <Link
+            href="/terms"
+            className="opacity-80 hover:opacity-100 transition-opacity font-medium"
+          >
+            Terms & Conditions
           </Link>
           <a
             href="mailto:dipankajsingh25@gmail.com"

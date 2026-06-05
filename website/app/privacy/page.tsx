@@ -28,7 +28,7 @@ export default function PrivacyPolicy() {
 
         <p className="mb-8">
           This Privacy Policy applies to the MuteMaster app (hereby referred to
-          as "Application") for mobile devices. The service is provided for free
+          as &quot;Application&quot;) for mobile devices. The service is provided for free
           and is intended for use as is.
         </p>
 
@@ -41,7 +41,7 @@ export default function PrivacyPolicy() {
         </p>
 
         <div className="border-2 border-foreground p-5 my-6 font-bold bg-foreground/5 rounded-lg">
-          The MuteMaster collects location data to enable the 'Automatic Mute'
+          The MuteMaster collects location data to enable the &apos;Automatic Mute&apos;
           feature, which silences your device when you enter specific zones
           (like your office or school), even when the app is closed or not in
           use.
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
         </p>
 
         <h3 className="text-xl font-medium mt-6 mb-3">
-          A. Location Data (The "What, Why, When")
+          A. Location Data (The &quot;What, Why, When&quot;)
         </h3>
         <ul className="list-disc pl-6 mb-6 space-y-2">
           <li>
@@ -71,7 +71,7 @@ export default function PrivacyPolicy() {
             (Latitude/Longitude).
           </li>
           <li>
-            <strong>Why we need it:</strong> To create and monitor "Geofences"
+            <strong>Why we need it:</strong> To create and monitor &quot;Geofences&quot;
             (virtual perimeters) around locations you define (e.g., Office,
             Church, Library).
           </li>
@@ -111,12 +111,12 @@ export default function PrivacyPolicy() {
           3. Data Storage and Retention (Local Only Policy)
         </h2>
         <p className="mb-4">
-          We are committed to a "Local First" architecture.
+          We are committed to a &quot;Local First&quot; architecture.
         </p>
         <ul className="list-disc pl-6 mb-8 space-y-2">
           <li>
             <strong>No Cloud Storage:</strong> Your location history, saved
-            zones, and preferences are stored locally in your device's internal
+            zones, and preferences are stored locally in your device&apos;s internal
             database (SQLite/Shared Preferences). We do not operate a backend
             server to store user data.
           </li>
@@ -138,7 +138,8 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           The Application uses third-party services that may collect information
           used to identify you. We utilize these services strictly for
-          functional infrastructure (Maps and Geofencing APIs).
+          functional infrastructure (Maps and Geofencing APIs), as well as app
+          stability and usage analytics.
         </p>
         <p className="mb-2">
           Link to privacy policy of third-party service providers used by the
@@ -154,6 +155,28 @@ export default function PrivacyPolicy() {
               rel="noopener noreferrer"
             >
               https://policies.google.com/privacy
+            </a>
+          </li>
+          <li>
+            <strong>Google Analytics for Firebase:</strong>{" "}
+            <a
+              href="https://firebase.google.com/policies/analytics"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://firebase.google.com/policies/analytics
+            </a>
+          </li>
+          <li>
+            <strong>Firebase Crashlytics:</strong>{" "}
+            <a
+              href="https://firebase.google.com/support/privacy"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://firebase.google.com/support/privacy
             </a>
           </li>
         </ul>

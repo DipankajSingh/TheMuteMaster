@@ -40,6 +40,15 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://dipankajsingh.github.io/MuteMaster/",
   },
+  authors: [{ name: "Dipankaj Singh", url: "https://dipankajsingh.github.io" }],
+  creator: "Dipankaj Singh",
+  publisher: "Dipdev",
+  category: "productivity",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
     title: "The Mute Master - Silent Mode Manager for Android",
     description:
