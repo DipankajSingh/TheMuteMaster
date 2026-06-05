@@ -91,19 +91,22 @@ export default function PrivacyPolicy() {
           </li>
         </ul>
 
-        <h3 className="text-xl font-medium mt-6 mb-3">B. Device State</h3>
-        <ul className="list-disc pl-6 mb-8 space-y-2">
+        <h3 className="text-xl font-medium mt-6 mb-3">B. Device State & Other Permissions</h3>
+        <ul className="list-disc pl-6 mb-8 space-y-4">
           <li>
-            <strong>What:</strong> Read/Write Audio Settings (Do Not Disturb
-            access).
+            <strong>Audio Settings (ACCESS_NOTIFICATION_POLICY):</strong> Read/Write access to Ringer and Media volume settings. Used to toggle the phone between Ring, Vibrate, and Silent modes, and to set custom media volume levels when a schedule or geofence activates.
           </li>
           <li>
-            <strong>Why:</strong> To switch the phone profile to Vibrate or
-            Silent.
+            <strong>Notifications (POST_NOTIFICATIONS):</strong> Permission to post status bar alerts. Used to inform you when the app has automatically changed your ringer mode.
           </li>
           <li>
-            <strong>When:</strong> Triggered immediately upon entering or
-            exiting a Geofence.
+            <strong>Exact Alarms (SCHEDULE_EXACT_ALARM, USE_EXACT_ALARM):</strong> Permission to schedule precise, time-critical alarms. Used to power the Time-Based Muting feature.
+          </li>
+          <li>
+            <strong>Boot on Start (RECEIVE_BOOT_COMPLETED):</strong> Permission to run code when the device restarts. Used to automatically restore and reschedule all your active geofences and time-based schedules.
+          </li>
+          <li>
+            <strong>Schedule & Preference Data:</strong> Schedule names, start/end times, active days of week, and custom sound profile settings. Saved locally to your device's database whenever you create or edit a schedule. Never transmitted off-device.
           </li>
         </ul>
 
@@ -262,21 +265,24 @@ export default function PrivacyPolicy() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
-          8. Contact Us
+          8. Grievance Officer & Contact
         </h2>
-        <p className="mb-2">
-          If you have any questions or suggestions about this Privacy Policy, do
-          not hesitate to contact the developer.
+        <p className="mb-4">
+          In accordance with the Information Technology Act (India) and DPDP compliance, if you have questions regarding your data, please contact:
         </p>
-        <p className="mb-8">
-          <strong>Email:</strong>{" "}
-          <a
-            href="mailto:dipankajsingh25@gmail.com"
-            className="text-primary hover:underline"
-          >
-            dipankajsingh25@gmail.com
-          </a>
-        </p>
+        <ul className="list-none pl-0 mb-8 space-y-2">
+          <li><strong>Name:</strong> Dipankaj</li>
+          <li>
+            <strong>Email:</strong>{" "}
+            <a
+              href="mailto:dipankajsingh25@gmail.com"
+              className="text-primary hover:underline"
+            >
+              dipankajsingh25@gmail.com
+            </a>
+          </li>
+          <li><strong>Location:</strong> New Delhi, India</li>
+        </ul>
       </div>
     </div>
   );

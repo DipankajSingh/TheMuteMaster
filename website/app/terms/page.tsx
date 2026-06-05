@@ -101,9 +101,31 @@ export default function TermsAndConditions() {
           app to have an active internet connection (for maps to load, analytics, and crash reporting). 
           The connection can be Wi-Fi or provided by your mobile network provider.
         </p>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
+          4. No Warranty (&quot;As Is&quot; Clause)
+        </h2>
+        <p className="mb-4">
+          The Application is provided on an &quot;AS IS&quot; and &quot;AS AVAILABLE&quot; basis. The Developer (Dipankaj) makes no warranties that the Application will be error-free or that the geofencing and time-scheduling features will work perfectly on every device or in every location.
+        </p>
+        <p className="mb-4">
+          <strong>You acknowledge that you are solely responsible</strong> for ensuring your device is silenced in sensitive environments. We are not liable for any missed calls, failed mute events, or any social or professional consequences resulting from the app&apos;s performance.
+        </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
-          4. Changes to This Terms and Conditions
+          5. Limitation of Liability
+        </h2>
+        <p className="mb-4">
+          To the maximum extent permitted by applicable law, in no event shall the Developer be liable for any direct, indirect, incidental, or consequential damages arising out of your use or inability to use the Application.
+        </p>
+
+        <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
+          6. Governing Law
+        </h2>
+        <p className="mb-4">
+          These Terms shall be governed by the laws of <strong>New Delhi, India</strong>. Any disputes arising from this App shall be subject to the exclusive jurisdiction of the courts in New Delhi.
+        </p>
+        <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
+          7. Changes to This Terms and Conditions
         </h2>
         <p className="mb-8">
           We may update our Terms and Conditions from time to time. Thus, you
@@ -113,7 +135,7 @@ export default function TermsAndConditions() {
         </p>
 
         <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
-          5. Contact Us
+          8. Contact Us
         </h2>
         <p className="mb-8">
           If you have any questions or suggestions about our Terms and
