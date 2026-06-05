@@ -137,7 +137,7 @@ export default function PrivacyPolicy() {
         </h2>
         <p className="mb-4">
           The Application uses third-party services that may collect information
-          used to identify you. We utilize these services strictly for
+          used to identify you, including your device&apos;s <strong>Advertising ID</strong>. We utilize these services strictly for
           functional infrastructure (Maps and Geofencing APIs), as well as app
           stability and usage analytics.
         </p>
