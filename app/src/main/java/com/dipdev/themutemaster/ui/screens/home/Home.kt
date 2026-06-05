@@ -141,30 +141,30 @@ fun Home(
             Spacer(modifier = Modifier.weight(0.5f))
 
             PulseIndicator(
-                isActive = viewModel.isLocationMuted,
-                statusText = if (viewModel.isLocationMuted) "Auto-Muting Active" else "Inactive"
+                isActive = viewModel.uiState.isLocationMuted,
+                statusText = if (viewModel.uiState.isLocationMuted) "Auto-Muting Active" else "Inactive"
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- UPDATED CARD ---
             LocationStatusCard(
-                locationText = viewModel.locationText,
-                isSaved = viewModel.isLocationSaved,
-                isActive = viewModel.isLocationMuted,
-                isLoading = viewModel.isLoading, // <--- NEW
-                isError = viewModel.isError,     // <--- NEW
+                locationText = viewModel.uiState.locationText,
+                isSaved = viewModel.uiState.isLocationSaved,
+                isActive = viewModel.uiState.isLocationMuted,
+                isLoading = viewModel.uiState.isLoading, // <--- NEW
+                isError = viewModel.uiState.isError,     // <--- NEW
                 onRetry = { viewModel.fetchLocation(forceRefresh = true) }, // <--- NEW
                 onCopy = {
-                    viewModel.locationText?.let { text ->
+                    viewModel.uiState.locationText?.let { text ->
                         context.copyToClipboard(text, "Location Address")
                     }
                 },
                 onPrimaryAction = {
-                    if (!viewModel.isLocationSaved) {
+                    if (!viewModel.uiState.isLocationSaved) {
                         viewModel.saveLocation()
                     } else {
-                        onNavigateToManage(viewModel.locationId)
+                        onNavigateToManage(viewModel.uiState.locationId)
                     }
                 }
             )
