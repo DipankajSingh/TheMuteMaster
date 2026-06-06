@@ -30,19 +30,23 @@ class BootDeviceReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-
+            val pendingResult = goAsync()
             // We need a Coroutine to read from the DB
             CoroutineScope(Dispatchers.IO).launch {
-                // Re-register all active geofences
-                val activeGeofences = dao.getAllEnabledGeofencesOneShot()
-                activeGeofences.forEach { geofence ->
-                    geofenceManager.addGeofence(geofence)
-                }
+                try {
+                    // Re-register all active geofences
+                    val activeGeofences = dao.getAllEnabledGeofencesOneShot()
+                    activeGeofences.forEach { geofence ->
+                        geofenceManager.addGeofence(geofence)
+                    }
 
-                // Re-schedule all enabled time schedules (alarms are wiped on reboot)
-                val enabledSchedules = scheduleDao.getEnabledSchedules()
-                enabledSchedules.forEach { schedule ->
-                    alarmScheduler.schedule(schedule)
+                    // Re-schedule all enabled time schedules (alarms are wiped on reboot)
+                    val enabledSchedules = scheduleDao.getEnabledSchedules()
+                    enabledSchedules.forEach { schedule ->
+                        alarmScheduler.schedule(schedule)
+                    }
+                } finally {
+                    pendingResult.finish()
                 }
             }
         }

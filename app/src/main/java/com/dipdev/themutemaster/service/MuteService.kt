@@ -44,7 +44,11 @@ class MuteService : Service() {
     override fun onCreate() {
         super.onCreate()
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        registerReceiver(volumeChangeReceiver, IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(volumeChangeReceiver, IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(volumeChangeReceiver, IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION))
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

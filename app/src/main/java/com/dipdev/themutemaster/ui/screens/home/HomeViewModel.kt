@@ -17,6 +17,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class HomeUiState(
+    val locationText: String? = null,
+    val isLoading: Boolean = false,
+    val isError: Boolean = false,
+    val isLocationSaved: Boolean = false,
+    val isLocationMuted: Boolean = false,
+    val locationId: String = "",
+    val currentLatitude: Double? = null,
+    val currentLongitude: Double? = null
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val locationClient: LocationClient,
@@ -27,27 +38,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     // --- UI STATE ---
-    var locationText by mutableStateOf<String?>(null)
-        private set
-
-    var isLoading by mutableStateOf(false)
-        private set
-
-    var isError by mutableStateOf(false)
-        private set
-
-    var isLocationSaved by mutableStateOf(false)
-        private set
-
-    var isLocationMuted by mutableStateOf(false)
-        private set
-
-    var locationId by mutableStateOf("")
-        private set
-
-    var currentLatitude by mutableStateOf<Double?>(null)
-        private set
-    var currentLongitude by mutableStateOf<Double?>(null)
+    var uiState by mutableStateOf(HomeUiState())
         private set
 
     private var lastFetchTime: Long = 0
@@ -56,22 +47,29 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             dao.getAllGeofences().collect { updatedList ->
-                val lat = currentLatitude
-                val lng = currentLongitude
+                val lat = uiState.currentLatitude
+                val lng = uiState.currentLongitude
 
                 if (lat != null && lng != null) {
                     val duplicate = GeofenceUtils.findOverlappingGeofence(lat, lng, updatedList)
 
                     if (duplicate != null) {
-                        isLocationSaved = true
-                        isLocationMuted = duplicate.isEnabled
-                        if (duplicate.fullAddress != null && duplicate.fullAddress != locationText) {
-                            locationText = duplicate.fullAddress
+                        val newLocationText = if (duplicate.fullAddress != null && duplicate.fullAddress != uiState.locationText) {
+                            duplicate.fullAddress
+                        } else {
+                            uiState.locationText
                         }
+                        uiState = uiState.copy(
+                            isLocationSaved = true,
+                            isLocationMuted = duplicate.isEnabled,
+                            locationText = newLocationText
+                        )
                     } else {
-                        if (isLocationSaved) {
-                            isLocationSaved = false
-                            isLocationMuted = false
+                        if (uiState.isLocationSaved) {
+                            uiState = uiState.copy(
+                                isLocationSaved = false,
+                                isLocationMuted = false
+                            )
                         }
                     }
                 }
@@ -81,13 +79,12 @@ class HomeViewModel @Inject constructor(
 
     fun fetchLocation(forceRefresh: Boolean = false) {
         val currentTime = System.currentTimeMillis()
-        if (!forceRefresh && locationText != null && (currentTime - lastFetchTime < CACHE_TIMEOUT)) {
+        if (!forceRefresh && uiState.locationText != null && (currentTime - lastFetchTime < CACHE_TIMEOUT)) {
             return
         }
 
         viewModelScope.launch {
-            isLoading = true
-            isError = false
+            uiState = uiState.copy(isLoading = true, isError = false)
 
             try {
                 delay(500) // Reduced to 500ms (5000ms is too long for users!)
@@ -96,8 +93,10 @@ class HomeViewModel @Inject constructor(
 
                 if (location != null) {
                     lastFetchTime = System.currentTimeMillis()
-                    currentLatitude = location.latitude
-                    currentLongitude = location.longitude
+                    uiState = uiState.copy(
+                        currentLatitude = location.latitude,
+                        currentLongitude = location.longitude
+                    )
 
                     val duplicate = GeofenceUtils.findOverlappingGeofence(
                         location.latitude,
@@ -106,48 +105,60 @@ class HomeViewModel @Inject constructor(
                     )
 
                     if (duplicate != null) {
-                        isLocationMuted = duplicate.isEnabled
-                        isLocationSaved = true
-                        locationText = duplicate.fullAddress ?: "Unknown Address"
-                        locationId = duplicate.id.toString()
+                        uiState = uiState.copy(
+                            isLocationMuted = duplicate.isEnabled,
+                            isLocationSaved = true,
+                            locationText = duplicate.fullAddress ?: "Unknown Address",
+                            locationId = duplicate.id.toString(),
+                            isError = false
+                        )
                     } else {
-                        isLocationSaved = false
-                        isLocationMuted = false
-                        locationText = locationClient.getAddressFromCoordinates(
-                            location.latitude,
-                            location.longitude
+                        uiState = uiState.copy(
+                            isLocationSaved = false,
+                            isLocationMuted = false,
+                            locationText = locationClient.getAddressFromCoordinates(
+                                location.latitude,
+                                location.longitude
+                            ),
+                            isError = false
                         )
                     }
-                    isError = false
                 } else {
-                    isError = true
-                    locationText = "Unable to get location. Is GPS on?"
+                    uiState = uiState.copy(
+                        isError = true,
+                        locationText = "Unable to get location. Is GPS on?"
+                    )
                 }
             } catch (e: SecurityException) {
-                isError = true
-                locationText = "Location permission missing."
+                uiState = uiState.copy(
+                    isError = true,
+                    locationText = "Location permission missing."
+                )
             } catch (e: Exception) {
-                isError = true
-                locationText = "Error: ${e.localizedMessage ?: "Unknown error"}"
+                uiState = uiState.copy(
+                    isError = true,
+                    locationText = "Error: ${e.localizedMessage ?: "Unknown error"}"
+                )
             } finally {
-                isLoading = false
+                uiState = uiState.copy(isLoading = false)
             }
         }
     }
 
     fun onPermissionDenied() {
-        locationText = "Permission denied. Please allow access in settings."
+        uiState = uiState.copy(locationText = "Permission denied. Please allow access in settings.")
     }
 
     fun saveLocation() {
-        val lat = currentLatitude ?: return
-        val lng = currentLongitude ?: return
+        val lat = uiState.currentLatitude ?: return
+        val lng = uiState.currentLongitude ?: return
+        val locText = uiState.locationText
 
         val addressToSave = when {
-            locationText.isNullOrBlank() -> "Unknown Address"
-            locationText == "Locating..." -> "Unknown Address"
-            locationText!!.startsWith("Error") -> "Unknown Address"
-            else -> locationText!!
+            locText.isNullOrBlank() -> "Unknown Address"
+            locText == "Locating..." -> "Unknown Address"
+            locText.startsWith("Error") -> "Unknown Address"
+            else -> locText
         }
 
         viewModelScope.launch {
@@ -169,10 +180,12 @@ class HomeViewModel @Inject constructor(
 
                 geofenceManager.addGeofence(finalEntity)
 
-                locationId = newId.toString()
-                isLocationSaved = true
-                isLocationMuted = true
-                locationText = addressToSave
+                uiState = uiState.copy(
+                    locationId = newId.toString(),
+                    isLocationSaved = true,
+                    isLocationMuted = true,
+                    locationText = addressToSave
+                )
 
             } catch (e: Exception) {
                 e.printStackTrace()

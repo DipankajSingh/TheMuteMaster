@@ -34,35 +34,40 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
 
         Log.d("ScheduleReceiver", "Alarm triggered for Schedule $scheduleId (isStart=$isStart)")
 
+        val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            val schedule = scheduleDao.getScheduleById(scheduleId)
-            
-            if (schedule == null || !schedule.isEnabled) {
-                Log.d("ScheduleReceiver", "Schedule $scheduleId not found or disabled. Ignoring.")
-                return@launch
-            }
-
-            val triggerId = "SCHEDULE_$scheduleId"
-
-            if (isStart) {
-                val profile = com.dipdev.themutemaster.data.local.SoundProfile(
-                    ringerMode = schedule.ringerMode,
-                    muteMedia = schedule.muteMedia,
-                    customMediaVolumePercent = schedule.customMediaVolumePercent
-                )
-                val wasMuted = muteStateManager.attemptMute(triggerId, profile)
-                if (wasMuted) {
-                    startMuteService(context)
+            try {
+                val schedule = scheduleDao.getScheduleById(scheduleId)
+                
+                if (schedule == null || !schedule.isEnabled) {
+                    Log.d("ScheduleReceiver", "Schedule $scheduleId not found or disabled. Ignoring.")
+                    return@launch
                 }
-            } else {
-                val wasRestored = muteStateManager.attemptRestore(triggerId)
-                if (wasRestored) {
-                    stopMuteService(context)
-                }
-            }
 
-            // Reschedule the alarm for the next week/occurrence
-            alarmScheduler.schedule(schedule)
+                val triggerId = "SCHEDULE_$scheduleId"
+
+                if (isStart) {
+                    val profile = com.dipdev.themutemaster.data.local.SoundProfile(
+                        ringerMode = schedule.ringerMode,
+                        muteMedia = schedule.muteMedia,
+                        customMediaVolumePercent = schedule.customMediaVolumePercent
+                    )
+                    val wasMuted = muteStateManager.attemptMute(triggerId, profile)
+                    if (wasMuted) {
+                        startMuteService(context)
+                    }
+                } else {
+                    val wasRestored = muteStateManager.attemptRestore(triggerId)
+                    if (wasRestored) {
+                        stopMuteService(context)
+                    }
+                }
+
+                // Reschedule the alarm for the next week/occurrence
+                alarmScheduler.schedule(schedule)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

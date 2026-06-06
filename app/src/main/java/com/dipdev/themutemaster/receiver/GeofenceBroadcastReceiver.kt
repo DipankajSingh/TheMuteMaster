@@ -1,5 +1,6 @@
 package com.dipdev.themutemaster.receiver
 
+import kotlinx.coroutines.launch
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -29,26 +30,33 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             return
         }
 
-        when (geofencingEvent.geofenceTransition) {
-            Geofence.GEOFENCE_TRANSITION_ENTER -> {
-                geofencingEvent.triggeringGeofences?.forEach { geofence ->
-                    val wasMuted = muteStateManager.attemptMute("GEOFENCE_${geofence.requestId}")
-                    if (wasMuted) {
-                        startMuteService(context)
-                    } else {
-                        Log.d("GeofenceReceiver", "Entered zone ${geofence.requestId}, but phone was already silent or we are already muting it.")
+        val pendingResult = goAsync()
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            try {
+                when (geofencingEvent.geofenceTransition) {
+                    Geofence.GEOFENCE_TRANSITION_ENTER -> {
+                        geofencingEvent.triggeringGeofences?.forEach { geofence ->
+                            val wasMuted = muteStateManager.attemptMute("GEOFENCE_${geofence.requestId}")
+                            if (wasMuted) {
+                                startMuteService(context)
+                            } else {
+                                Log.d("GeofenceReceiver", "Entered zone ${geofence.requestId}, but phone was already silent or we are already muting it.")
+                            }
+                        }
                     }
-                }
-            }
-            Geofence.GEOFENCE_TRANSITION_EXIT -> {
-                geofencingEvent.triggeringGeofences?.forEach { geofence ->
-                    val wasRestored = muteStateManager.attemptRestore("GEOFENCE_${geofence.requestId}")
-                    if (wasRestored) {
-                        stopMuteService(context)
+                    Geofence.GEOFENCE_TRANSITION_EXIT -> {
+                        geofencingEvent.triggeringGeofences?.forEach { geofence ->
+                            val wasRestored = muteStateManager.attemptRestore("GEOFENCE_${geofence.requestId}")
+                            if (wasRestored) {
+                                stopMuteService(context)
+                            }
+                        }
                     }
+                    else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")
                 }
+            } finally {
+                pendingResult.finish()
             }
-            else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")
         }
     }
 
