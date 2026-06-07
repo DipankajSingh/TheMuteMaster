@@ -31,12 +31,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDao(db: GeofenceDatabase): GeofenceDao {
-        return db.dao
+        return db.dao()
     }
 
     @Provides
     @Singleton
     fun provideScheduleDao(db: GeofenceDatabase): ScheduleDao {
-        return db.scheduleDao
+        return db.scheduleDao()
     }
 }

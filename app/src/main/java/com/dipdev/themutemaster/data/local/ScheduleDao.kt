@@ -20,10 +20,10 @@ interface ScheduleDao {
     suspend fun insertSchedule(schedule: ScheduleEntity): Long
 
     @Update
-    suspend fun updateSchedule(schedule: ScheduleEntity)
+    suspend fun updateSchedule(schedule: ScheduleEntity): Int
 
     @Delete
-    suspend fun deleteSchedule(schedule: ScheduleEntity)
+    suspend fun deleteSchedule(schedule: ScheduleEntity): Int
     
     @Query("SELECT * FROM schedules WHERE isEnabled = 1")
     suspend fun getEnabledSchedules(): List<ScheduleEntity>

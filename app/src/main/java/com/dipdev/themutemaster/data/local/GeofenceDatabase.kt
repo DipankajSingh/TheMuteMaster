@@ -12,8 +12,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     exportSchema = true
 )
 abstract class GeofenceDatabase : RoomDatabase() {
-    abstract val dao: GeofenceDao
-    abstract val scheduleDao: ScheduleDao
+    abstract fun dao(): GeofenceDao
+    abstract fun scheduleDao(): ScheduleDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {

@@ -20,7 +20,7 @@ foundationLayout = "1.7.5"
 firebaseBom = "33.14.0"
 googleServices = "4.4.4"
 firebaseCrashlyticsPlugin = "3.0.7"
-hilt = "2.51"
+hilt = "2.59.2"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }

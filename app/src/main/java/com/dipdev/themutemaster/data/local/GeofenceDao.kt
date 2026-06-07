@@ -34,7 +34,7 @@ interface GeofenceDao {
      * @param id The entity to remove.
      */
     @Query("DELETE from geofences WHERE id= :id")
-    suspend fun deleteGeofenceById(id: Int)
+    suspend fun deleteGeofenceById(id: Int): Int
 
     /**
      * Observes all geofences in the database.
@@ -74,5 +74,5 @@ interface GeofenceDao {
     suspend fun getGeofenceById(id: Int): GeofenceEntity?
 
     @Delete
-    suspend fun deleteGeofence(geofence: GeofenceEntity)
+    suspend fun deleteGeofence(geofence: GeofenceEntity): Int
 }
