@@ -3,9 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
-    id("com.google.dagger.hilt.android")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    alias(libs.plugins.hilt.android.plugin)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics.plugin)
 }
 
 android {
@@ -68,11 +68,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("com.google.dagger:hilt-android:2.51")
+    implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation.layout)
-    ksp("com.google.dagger:hilt-android-compiler:2.51")
+    ksp(libs.hilt.android.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     testImplementation(libs.junit)
@@ -92,7 +92,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-crashlytics")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
 }

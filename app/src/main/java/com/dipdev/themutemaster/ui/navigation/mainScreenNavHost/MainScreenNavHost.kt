@@ -28,6 +28,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -239,14 +240,26 @@ fun FloatingBottomBar(
     NavigationBar(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 24.dp)
-            .height(64.dp)
-            .clip(RoundedCornerShape(32.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainer) // The bar color
+            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .height(68.dp)
+            .clip(RoundedCornerShape(34.dp))
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f),
+                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.88f)
+                    )
+                )
+            )
             .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), // Subtle border
-                shape = RoundedCornerShape(32.dp)
+                width = 0.5.dp,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.08f)
+                    )
+                ),
+                shape = RoundedCornerShape(34.dp)
             ),
         containerColor = Color.Transparent,
         tonalElevation = 0.dp,

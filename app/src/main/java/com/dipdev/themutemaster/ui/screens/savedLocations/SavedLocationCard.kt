@@ -1,5 +1,6 @@
 package com.dipdev.themutemaster.ui.screens.savedLocations
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -47,14 +50,21 @@ fun SavedLocationCard(
 ) {
     // Dim the card if it is disabled
     val cardAlpha = if (location.isEnabled) 1f else 0.6f
+    val haptic = LocalHapticFeedback.current
 
     ElevatedCard(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(20.dp)
+            )
     ) {
         Column(
             modifier = Modifier
@@ -108,7 +118,10 @@ fun SavedLocationCard(
                 // TOGGLE SWITCH
                 Switch(
                     checked = location.isEnabled,
-                    onCheckedChange = onToggle,
+                    onCheckedChange = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onToggle(it)
+                    },
                     thumbContent = {
                         if (location.isEnabled) {
                             Icon(
@@ -131,7 +144,10 @@ fun SavedLocationCard(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
-                    onClick = onDelete,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onDelete()
+                    },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
                     )

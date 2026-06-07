@@ -12,10 +12,10 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Firebase Crashlytics — preserve line numbers for readable stack traces
+# CRITICAL: without this, crash reports show obfuscated line numbers
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Firebase Crashlytics — keep custom exceptions
+-keep public class * extends java.lang.Exception

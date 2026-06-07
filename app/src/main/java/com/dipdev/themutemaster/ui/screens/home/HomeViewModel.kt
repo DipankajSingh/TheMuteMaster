@@ -192,4 +192,28 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleMute() {
+        val locationId = uiState.locationId
+        if (locationId.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                val id = locationId.toIntOrNull() ?: return@launch
+                val geofence = dao.getGeofenceById(id) ?: return@launch
+                val updated = geofence.copy(isEnabled = !geofence.isEnabled)
+                dao.insertGeofence(updated) // insertGeofence with REPLACE handles updates
+
+                if (updated.isEnabled) {
+                    geofenceManager.addGeofence(updated)
+                } else {
+                    geofenceManager.removeGeofence(updated)
+                }
+
+                uiState = uiState.copy(isLocationMuted = updated.isEnabled)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

@@ -19,7 +19,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,8 +75,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -85,13 +92,15 @@ import com.dipdev.themutemaster.utils.copyToClipboard
 @Composable
 fun Home(
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),onNavigateToManage: (String) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToManage: (String) -> Unit,
     criticalError: Boolean,
-    onSettingsClick:()-> Unit
+    onSettingsClick: () -> Unit
 ) {
     Log.e("GeofenceManager", "test from home screen")
 
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     // --- Permissions Logic (Unchanged) ---
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -142,7 +151,22 @@ fun Home(
 
             PulseIndicator(
                 isActive = viewModel.uiState.isLocationMuted,
-                statusText = if (viewModel.uiState.isLocationMuted) "Auto-Muting Active" else "Inactive"
+                isLoading = viewModel.uiState.isLoading,
+                statusText = if (viewModel.uiState.isLocationMuted) "Auto-Muting Active" else "Inactive",
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (!viewModel.uiState.isLocationSaved) {
+                        viewModel.saveLocation()
+                    } else {
+                        viewModel.toggleMute()
+                    }
+                },
+                onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    viewModel.uiState.locationText?.let { text ->
+                        context.copyToClipboard(text, "Location Address")
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -152,15 +176,17 @@ fun Home(
                 locationText = viewModel.uiState.locationText,
                 isSaved = viewModel.uiState.isLocationSaved,
                 isActive = viewModel.uiState.isLocationMuted,
-                isLoading = viewModel.uiState.isLoading, // <--- NEW
-                isError = viewModel.uiState.isError,     // <--- NEW
-                onRetry = { viewModel.fetchLocation(forceRefresh = true) }, // <--- NEW
+                isLoading = viewModel.uiState.isLoading,
+                isError = viewModel.uiState.isError,
+                onRetry = { viewModel.fetchLocation(forceRefresh = true) },
                 onCopy = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     viewModel.uiState.locationText?.let { text ->
                         context.copyToClipboard(text, "Location Address")
                     }
                 },
                 onPrimaryAction = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     if (!viewModel.uiState.isLocationSaved) {
                         viewModel.saveLocation()
                     } else {
@@ -178,11 +204,9 @@ fun Home(
 fun ModernHeader(onSettingsClick: () -> Unit, criticalError: Boolean) {
     Row(
         modifier =
-            if (criticalError){
-                Modifier
-                    .fillMaxWidth()
-            }
-            else{
+            if (criticalError) {
+                Modifier.fillMaxWidth()
+            } else {
                 Modifier
                     .fillMaxWidth()
                     .statusBarsPadding()
@@ -201,7 +225,6 @@ fun ModernHeader(onSettingsClick: () -> Unit, criticalError: Boolean) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 letterSpacing = 0.5.sp
-                // Removed manual padding; alignment handles it now
             )
         }
 
@@ -240,37 +263,39 @@ fun AppLogo() {
     }
 }
 
-// --- 2. PULSE INDICATOR ---
+// --- 2. PULSE INDICATOR (Interactive + Glow Redesign) ---
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PulseIndicator(
     isActive: Boolean,
-    statusText: String
+    isLoading: Boolean,
+    statusText: String,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     // 1. SMOOTH COLOR TRANSITIONS
-    // Instead of snapping, we animate the color over 500ms
     val coreColor by animateColorAsState(
         targetValue = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
         animationSpec = tween(500),
         label = "color"
     )
-
     val iconColor by animateColorAsState(
         targetValue = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         animationSpec = tween(500),
         label = "iconColor"
     )
+    val glowColor = MaterialTheme.colorScheme.primary
 
-    // 2. THE PULSE ANIMATION (Optimized)
+    // 2. PULSE ANIMATION
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
 
-    // We only run the pulse animations if active, but we handle the "off" state gracefully
     val pulseScale by if (isActive) {
         infiniteTransition.animateFloat(
             initialValue = 1f,
-            targetValue = 1.2f, // Reduced growth slightly for smoothness
+            targetValue = 1.2f,
             animationSpec = infiniteRepeatable(
                 animation = tween(1200, easing = LinearOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse // Reverse makes it breathe (In-Out) instead of Snap-Reset
+                repeatMode = RepeatMode.Reverse
             ),
             label = "pulseScale"
         )
@@ -281,7 +306,7 @@ fun PulseIndicator(
     val rippleScale by if (isActive) {
         infiniteTransition.animateFloat(
             initialValue = 1f,
-            targetValue = 1.6f, // Larger ripple
+            targetValue = 1.7f,
             animationSpec = infiniteRepeatable(
                 animation = tween(1500, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
@@ -294,10 +319,10 @@ fun PulseIndicator(
 
     val rippleAlpha by if (isActive) {
         infiniteTransition.animateFloat(
-            initialValue = 0.4f,
+            initialValue = 0.35f,
             targetValue = 0f,
             animationSpec = infiniteRepeatable(
-                animation = tween(1500, easing = LinearEasing), // Match duration with rippleScale
+                animation = tween(1500, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "rippleAlpha"
@@ -309,8 +334,7 @@ fun PulseIndicator(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(contentAlignment = Alignment.Center) {
 
-            // RIPPLE LAYER (Only visible when active)
-            // We gently fade this in/out using AnimatedVisibility to avoid the "Pop"
+            // GLOW RIPPLE LAYER (radial gradient for glow effect)
             androidx.compose.animation.AnimatedVisibility(
                 visible = isActive,
                 enter = fadeIn(animationSpec = tween(500)),
@@ -318,73 +342,106 @@ fun PulseIndicator(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(180.dp) // Match core size
+                        .size(180.dp)
                         .scale(rippleScale)
                         .alpha(rippleAlpha)
-                        .background(coreColor, CircleShape)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    glowColor.copy(alpha = 0.6f),
+                                    glowColor.copy(alpha = 0f)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
                 )
             }
 
-            // CORE CIRCLE
-            Surface(
+            // CORE CIRCLE — now tappable as a "power button"
+            Box(
                 modifier = Modifier
                     .size(180.dp)
-                    .scale(pulseScale), // The "Breathing" effect
-                shape = CircleShape,
-                color = coreColor,
-                shadowElevation = 10.dp
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    // 3. SMOOTH ICON SWAP
-                    // AnimatedContent slides the new icon in while the old one fades out
-                    AnimatedContent (
-                        targetState = isActive,
-                        transitionSpec = {
-                            fadeIn(animationSpec = tween(300)) + scaleIn() togetherWith
-                                    fadeOut(animationSpec = tween(300)) + scaleOut()
-                        },
-                        label = "iconSwap"
-                    ) { active ->
-                        Icon(
-                            imageVector = if (active) Icons.Rounded.NotificationsOff else Icons.Rounded.Pause,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = iconColor
-                        )
+                    .scale(pulseScale)
+                    // Glow shadow behind the circle when active
+                    .drawBehind {
+                        if (isActive) {
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        glowColor.copy(alpha = 0.25f),
+                                        glowColor.copy(alpha = 0f)
+                                    ),
+                                    radius = size.minDimension * 0.7f
+                                ),
+                                radius = size.minDimension * 0.7f
+                            )
+                        }
                     }
+                    .clip(CircleShape)
+                    .background(coreColor)
+                    .combinedClickable(
+                        onClick = { if (!isLoading) onClick() },
+                        onLongClick = onLongClick
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                // SMOOTH ICON SWAP
+                AnimatedContent(
+                    targetState = isActive,
+                    transitionSpec = {
+                        fadeIn(animationSpec = tween(300)) + scaleIn() togetherWith
+                                fadeOut(animationSpec = tween(300)) + scaleOut()
+                    },
+                    label = "iconSwap"
+                ) { active ->
+                    Icon(
+                        imageVector = if (active) Icons.Rounded.NotificationsOff else Icons.Rounded.Pause,
+                        contentDescription = if (active) "Tap to unmute" else "Tap to mute",
+                        modifier = Modifier.size(64.dp),
+                        tint = iconColor
+                    )
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // STATUS TEXT (Crossfade this too for extra polish)
-        AnimatedContent(
-            targetState = statusText,
-            transitionSpec = {
-                fadeIn(tween(300)) togetherWith fadeOut(tween(300))
-            },
-            label = "textSwap"
-        ) { text ->
+        // STATUS TEXT with hint
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            AnimatedContent(
+                targetState = statusText,
+                transitionSpec = {
+                    fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                },
+                label = "textSwap"
+            ) { text ->
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = text,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                text = if (isLoading) "Getting your location…" else "Tap to toggle · Hold to copy",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                letterSpacing = 0.3.sp
             )
         }
     }
 }
 
-// --- 3. STATUS CARD ---
+// --- 3. STATUS CARD (Upgraded) ---
 @Composable
 fun LocationStatusCard(
     locationText: String?,
     isSaved: Boolean,
     isActive: Boolean,
-    isLoading: Boolean, // New Param
-    isError: Boolean,   // New Param
-    onRetry: () -> Unit, // New Param
+    isLoading: Boolean,
+    isError: Boolean,
+    onRetry: () -> Unit,
     onCopy: () -> Unit,
     onPrimaryAction: () -> Unit
 ) {
@@ -398,19 +455,25 @@ fun LocationStatusCard(
     }
 
     ElevatedCard(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(20.dp)
+            )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 // Icon Circle
                 Surface(
                     shape = CircleShape,
-                    color = statusColor.copy(alpha = 0.1f),
+                    color = statusColor.copy(alpha = 0.12f),
                     modifier = Modifier.size(48.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -447,7 +510,6 @@ fun LocationStatusCard(
 
                     if (isLoading) {
                         // --- LOADING ANIMATION ---
-                        // A pulsing gray bar instead of text
                         LoadingSkeleton()
                         Spacer(modifier = Modifier.height(4.dp))
                         LoadingSkeleton(widthFraction = 0.6f)
@@ -498,7 +560,7 @@ fun LocationStatusCard(
                 // RIGHT BUTTON: Save/Manage (Disabled if loading OR error)
                 FilledTonalButton(
                     onClick = onPrimaryAction,
-                    enabled = !isLoading && !isError, // Locked until we have a valid location
+                    enabled = !isLoading && !isError,
                     contentPadding = PaddingValues(horizontal = 24.dp)
                 ) {
                     Icon(
@@ -531,7 +593,7 @@ fun LoadingSkeleton(widthFraction: Float = 0.9f) {
     Box(
         modifier = Modifier
             .fillMaxWidth(widthFraction)
-            .height(20.dp) // Height of a text line
+            .height(20.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = alpha))
     )
