@@ -18,7 +18,7 @@ import java.util.Locale
 import kotlin.coroutines.resume
 
 
-class DefaultLocationClient (
+class GmsLocationClient (
     private val context: Context,
     private val client: FusedLocationProviderClient,
     private val crashReporter: CrashReporter

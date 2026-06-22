@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://developer.huawei.com/repo/")
+    }
+    dependencies {
+        classpath("com.huawei.agconnect:agcp:1.9.5.302")
+    }
+}
+
 // Top-level build file
 plugins {
     alias(libs.plugins.android.application) apply false
