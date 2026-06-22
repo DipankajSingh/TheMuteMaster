@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.dipdev.themutemaster.ui.components.AnimatedToggleInstruction
+import com.dipdev.themutemaster.ui.components.IllustrationType
+import com.dipdev.themutemaster.ui.components.PermissionIllustration
 import com.dipdev.themutemaster.utils.hasDndPermission
 import com.dipdev.themutemaster.utils.openDndSettings
 
@@ -66,8 +68,8 @@ fun DndPermissionScreen(
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text(
@@ -92,9 +94,11 @@ fun DndPermissionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(24.dp))
+            
             // TOP BAR
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -116,20 +120,26 @@ fun DndPermissionScreen(
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // HEADLINE
-            Text(
-                text = "Master the Silence",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             if (!isUnderstood) {
+                // ILLUSTRATION AREA
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PermissionIllustration(type = IllustrationType.DND)
+                }
+
+                // HEADLINE
+                Text(
+                    text = "Modify Do Not Disturb",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "To automatically mute your phone, MuteMaster needs to toggle Android's native DND mode. This permission only controls volume states and does not read or intercept screen content.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -138,7 +148,7 @@ fun DndPermissionScreen(
                     lineHeight = 24.sp
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -157,6 +167,8 @@ fun DndPermissionScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+
+                Spacer(Modifier.height(24.dp))
             } else {
                 Spacer(modifier = Modifier.height(32.dp))
                 Box(

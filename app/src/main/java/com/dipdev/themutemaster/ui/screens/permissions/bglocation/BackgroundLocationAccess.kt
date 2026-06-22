@@ -18,6 +18,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dipdev.themutemaster.ui.components.AnimatedListInstruction
+import com.dipdev.themutemaster.ui.components.IllustrationType
+import com.dipdev.themutemaster.ui.components.PermissionIllustration
 
 @Composable
 fun BackgroundLocationAccess(
@@ -70,8 +72,8 @@ fun BackgroundLocationAccess(
                         .height(56.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                        contentColor = MaterialTheme.colorScheme.onTertiary
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
                     Text(
@@ -99,9 +101,11 @@ fun BackgroundLocationAccess(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(24.dp))
+            
             // TOP BAR
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -123,20 +127,26 @@ fun BackgroundLocationAccess(
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
 
-            Spacer(Modifier.height(24.dp))
-
-            // HEADLINE & TEXT
-            Text(
-                text = "Always-On Location",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(Modifier.height(12.dp))
-
             if (!isUnderstood) {
+                // ILLUSTRATION AREA
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PermissionIllustration(type = IllustrationType.LOCATION_BACKGROUND)
+                }
+
+                // TEXT CONTENT
+                Text(
+                    text = "Always-On Location",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(Modifier.height(16.dp))
+
                 Text(
                     text = "To mute your device automatically when you arrive at work, MuteMaster needs location access even when the app is closed. This enables detecting your arrival at a saved place, even if your phone is in your pocket. Location data is processed strictly locally and never shared, uploaded, or sold to third parties.",
                     style = MaterialTheme.typography.bodyLarge,
@@ -145,19 +155,27 @@ fun BackgroundLocationAccess(
                     lineHeight = 24.sp
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = { /* TODO: Privacy Policy */ }) {
-                        Text("Privacy Policy")
-                    }
-                    TextButton(onClick = { /* TODO: Terms of Service */ }) {
-                        Text("Terms of Service")
-                    }
+                    Text(
+                        text = "Privacy Policy",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "Terms of Service",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
+
+                Spacer(Modifier.height(24.dp))
             } else {
                 Spacer(Modifier.height(24.dp))
                 // MIDDLE VISUAL (DYNAMIC SCALE)

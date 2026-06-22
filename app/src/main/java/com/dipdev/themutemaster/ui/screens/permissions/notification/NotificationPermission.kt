@@ -26,8 +26,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.dipdev.themutemaster.ui.components.AnimatedToggleInstruction
+import com.dipdev.themutemaster.ui.components.IllustrationType
 import com.dipdev.themutemaster.ui.components.PermissionDialog
+import com.dipdev.themutemaster.ui.components.PermissionIllustration
 import com.dipdev.themutemaster.utils.hasNotificationPermission
 import com.dipdev.themutemaster.utils.openAppSettings
 
@@ -158,9 +159,11 @@ fun NotificationPermissionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(24.dp))
+            
             // TOP BAR
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -182,11 +185,17 @@ fun NotificationPermissionScreen(
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
 
-            Spacer(Modifier.height(40.dp))
+            // ILLUSTRATION AREA
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                PermissionIllustration(type = IllustrationType.NOTIFICATIONS)
+            }
 
-            // HEADLINE
+            // TEXT CONTENT
             Text(
-                text = "Don't Miss a Beat",
+                text = "Stay Informed",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -203,40 +212,27 @@ fun NotificationPermissionScreen(
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                AnimatedToggleInstruction(
-                    targetName = "MuteMaster",
-                    icon = Icons.Default.NotificationsActive
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Privacy Policy",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = " • ",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = "Terms of Service",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }

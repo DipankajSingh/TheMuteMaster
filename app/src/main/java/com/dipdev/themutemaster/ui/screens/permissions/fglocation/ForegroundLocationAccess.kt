@@ -24,7 +24,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOn
+import com.dipdev.themutemaster.ui.components.IllustrationType
 import com.dipdev.themutemaster.ui.components.PermissionDialog
+import com.dipdev.themutemaster.ui.components.PermissionIllustration
 import com.dipdev.themutemaster.utils.hasForegroundLocationPermission
 import com.dipdev.themutemaster.utils.openAppSettings
 
@@ -147,9 +149,11 @@ fun ForegroundLocationAccess(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.height(24.dp))
+            
             // TOP BAR & PROGRESS
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -171,25 +175,21 @@ fun ForegroundLocationAccess(
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
 
-            // ABSTRACT ILLUSTRATION
+            // ILLUSTRATION AREA
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.LocationOn,
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                PermissionIllustration(type = IllustrationType.LOCATION_FOREGROUND)
             }
 
-            // HEADLINE
+            // TEXT CONTENT
             Text(
-                text = "Where are you?",
+                text = "Location Access",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
             )
 
             Spacer(Modifier.height(16.dp))
@@ -198,22 +198,31 @@ fun ForegroundLocationAccess(
                 text = "To mute your phone automatically when you arrive at work or school, MuteMaster needs to know your location. This ensures your phone silences exactly when you walk through the door of a saved zone.\n\nYour location data stays on your device. We never share it.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 24.sp
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { /* TODO */ }) {
-                    Text("Privacy Policy")
-                }
-                TextButton(onClick = { /* TODO */ }) {
-                    Text("Terms of Service")
-                }
+                Text(
+                    text = "Privacy Policy",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "Terms of Service",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+
+            Spacer(Modifier.height(24.dp))
         }
     }
 }
