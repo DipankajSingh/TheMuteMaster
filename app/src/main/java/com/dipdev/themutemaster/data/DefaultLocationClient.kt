@@ -9,6 +9,7 @@ import android.os.Build
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.dipdev.themutemaster.utils.CrashReporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
@@ -19,7 +20,8 @@ import kotlin.coroutines.resume
 
 class DefaultLocationClient (
     private val context: Context,
-    private val client: FusedLocationProviderClient
+    private val client: FusedLocationProviderClient,
+    private val crashReporter: CrashReporter
 ): LocationClient{
     @SuppressLint("MissingPermission")
     override suspend fun getCurrentLocation(): Location? {
@@ -35,7 +37,8 @@ class DefaultLocationClient (
                 CancellationTokenSource().token
             ).await()
         } catch (e: Exception){
-            throw LocationClient.LocationException(e.message ?:"Unknown Error!!!!")
+            crashReporter.recordNonFatal(e, context = "DefaultLocationClient.getCurrentLocation")
+            throw LocationClient.LocationException(e.message ?: "Unknown Error!!!!")
         }
     }
     @Suppress("DEPRECATION")
@@ -69,7 +72,7 @@ class DefaultLocationClient (
                         "Unknown Location"
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    crashReporter.recordNonFatal(e, context = "DefaultLocationClient.getAddressFromCoordinates (API < 33)")
                     "Address lookup failed"
                 }
             }

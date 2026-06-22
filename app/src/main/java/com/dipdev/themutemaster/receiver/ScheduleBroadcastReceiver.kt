@@ -8,6 +8,7 @@ import android.util.Log
 import com.dipdev.themutemaster.data.local.ScheduleDao
 import com.dipdev.themutemaster.data.local.MuteStateManager
 import com.dipdev.themutemaster.utils.AlarmScheduler
+import com.dipdev.themutemaster.utils.CrashReporter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
     @Inject lateinit var muteStateManager: MuteStateManager
     @Inject lateinit var scheduleDao: ScheduleDao
     @Inject lateinit var alarmScheduler: AlarmScheduler
+    @Inject lateinit var crashReporter: CrashReporter
 
     companion object {
         const val EXTRA_SCHEDULE_ID = "extra_schedule_id"
@@ -36,6 +38,8 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
+            crashReporter.log("ScheduleBroadcastReceiver: scheduleId=$scheduleId, isStart=$isStart")
+            crashReporter.setKey("last_triggered_schedule_id", scheduleId)
             try {
                 val schedule = scheduleDao.getScheduleById(scheduleId)
                 
@@ -54,7 +58,7 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
                     )
                     val wasMuted = muteStateManager.attemptMute(triggerId, profile)
                     if (wasMuted) {
-                        startMuteService(context)
+                        startMuteService(context, scheduleId)
                     }
                 } else {
                     val wasRestored = muteStateManager.attemptRestore(triggerId)
@@ -71,7 +75,7 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun startMuteService(context: Context) {
+    private fun startMuteService(context: Context, scheduleId: Int = -1) {
         try {
             val serviceIntent = Intent(context, com.dipdev.themutemaster.service.MuteService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -81,6 +85,7 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
             }
         } catch (e: Exception) {
             Log.e("ScheduleReceiver", "Failed to start MuteService: ${e.message}")
+            crashReporter.recordNonFatal(e, context = "ScheduleBroadcastReceiver.startMuteService(scheduleId=$scheduleId)")
         }
     }
 

@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dipdev.themutemaster.R
 import com.dipdev.themutemaster.data.local.MuteStateManager
+import com.dipdev.themutemaster.utils.CrashReporter
 import com.dipdev.themutemaster.utils.NotificationConstants
 import com.dipdev.themutemaster.utils.hasNotificationPermission
 import com.google.android.gms.location.Geofence
@@ -22,16 +23,25 @@ import javax.inject.Inject
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
     @Inject lateinit var muteStateManager: MuteStateManager
+    @Inject lateinit var crashReporter: CrashReporter
 
     override fun onReceive(context: Context, intent: Intent) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent) ?: return
         if (geofencingEvent.hasError()) {
-            Log.e("GeofenceReceiver", "Error Code: ${geofencingEvent.errorCode}")
+            val errorCode = geofencingEvent.errorCode
+            Log.e("GeofenceReceiver", "Error Code: $errorCode")
+            crashReporter.log("GeofenceEvent error received")
+            crashReporter.setKey("geofence_error_code", errorCode)
+            crashReporter.recordNonFatal(
+                RuntimeException("GeofencingEvent error: code=$errorCode"),
+                context = "GeofenceBroadcastReceiver.onReceive"
+            )
             return
         }
 
         val pendingResult = goAsync()
         kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            crashReporter.log("GeofenceBroadcastReceiver: transition=${geofencingEvent.geofenceTransition}, geofences=${geofencingEvent.triggeringGeofences?.map { it.requestId }}")        
             try {
                 when (geofencingEvent.geofenceTransition) {
                     Geofence.GEOFENCE_TRANSITION_ENTER -> {
@@ -52,7 +62,14 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                             }
                         }
                     }
-                    else -> Log.e("GeofenceReceiver", "Unknown transition: ${geofencingEvent.geofenceTransition}")
+                    else -> {
+                        val transition = geofencingEvent.geofenceTransition
+                        Log.e("GeofenceReceiver", "Unknown transition: $transition")
+                        crashReporter.recordNonFatal(
+                            RuntimeException("Unknown geofence transition type: $transition"),
+                            context = "GeofenceBroadcastReceiver.onReceive"
+                        )
+                    }
                 }
             } finally {
                 pendingResult.finish()
@@ -70,6 +87,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             }
         } catch (e: Exception) {
             Log.e("GeofenceReceiver", "Failed to start MuteService: ${e.message}")
+            crashReporter.recordNonFatal(e, context = "GeofenceBroadcastReceiver.startMuteService")
         }
     }
 

@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.dipdev.themutemaster.R
 import com.dipdev.themutemaster.data.local.MuteStateManager
+import com.dipdev.themutemaster.utils.CrashReporter
 import com.dipdev.themutemaster.utils.NotificationConstants
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class MuteService : Service() {
 
     @Inject lateinit var muteStateManager: MuteStateManager
+    @Inject lateinit var crashReporter: CrashReporter
 
     private lateinit var audioManager: AudioManager
     private val channelId = NotificationConstants.CHANNEL_ID
@@ -73,6 +75,7 @@ class MuteService : Service() {
             }
         } catch (e: Exception) {
             Log.e("MuteService", "Failed to start foreground service: ${e.message}")
+            crashReporter.recordNonFatal(e, context = "MuteService.onStartCommand – startForeground failed")
             // Even if foreground service fails, we are already muted, but we might get killed soon.
             // We can't do much here except avoid crashing.
         }
@@ -85,7 +88,7 @@ class MuteService : Service() {
         try {
             unregisterReceiver(volumeChangeReceiver)
         } catch (e: Exception) {
-            e.printStackTrace()
+            crashReporter.recordNonFatal(e, context = "MuteService.onDestroy – unregisterReceiver failed")
         }
     }
 

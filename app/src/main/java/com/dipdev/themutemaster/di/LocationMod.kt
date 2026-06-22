@@ -3,6 +3,7 @@ package com.dipdev.themutemaster.di
 import android.content.Context
 import com.dipdev.themutemaster.data.DefaultLocationClient
 import com.dipdev.themutemaster.data.LocationClient
+import com.dipdev.themutemaster.utils.CrashReporter
 import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
@@ -16,10 +17,14 @@ import javax.inject.Singleton
 object LocationMod{
     @Provides
     @Singleton
-    fun provideLocationClient(@ApplicationContext context: Context): LocationClient{
+    fun provideLocationClient(
+        @ApplicationContext context: Context,
+        crashReporter: CrashReporter
+    ): LocationClient{
         return DefaultLocationClient(
             context,
-            LocationServices.getFusedLocationProviderClient(context)
+            LocationServices.getFusedLocationProviderClient(context),
+            crashReporter
         )
     }
 }
