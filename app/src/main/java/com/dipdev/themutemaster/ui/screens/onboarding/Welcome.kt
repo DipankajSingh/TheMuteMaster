@@ -15,6 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.res.painterResource
+import com.dipdev.themutemaster.R
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,15 +83,22 @@ fun Welcome(onGetStarted: () -> Unit) {
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
-                // Hero illustration — built in Compose, no PNG needed
-                HeroIllustration(
-                    modifier = Modifier
-                        .size(260.dp)
-                        .graphicsLayer { translationY = heroFloat }
-                )
+                BoxWithConstraints {
+                    val availableHeight = this.maxHeight
+                    val scale = minOf(1f, availableHeight / 280.dp).coerceAtLeast(0f)
+                    
+                    // Hero illustration using PNGs
+                    HeroIllustration(
+                        modifier = Modifier
+                            .size(280.dp)
+                            .scale(scale)
+                            .graphicsLayer { translationY = heroFloat }
+                    )
+                }
             }
 
             // ── Bottom Content Card ───────────────────────────────────────
@@ -244,43 +256,12 @@ private fun HeroIllustration(modifier: Modifier = Modifier) {
     ) {
 
         // ── Central phone frame ───────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .width(120.dp)
-                .height(200.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .background(primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            // Phone screen inner
-            Box(
-                modifier = Modifier
-                    .width(104.dp)
-                    .height(184.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
-                contentAlignment = Alignment.Center
-            ) {
-                // Muted bell icon — the star of the show
-                Icon(
-                    imageVector = Icons.Rounded.NotificationsOff,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = primary
-                )
-            }
-
-            // Notch
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp)
-                    .width(30.dp)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(primaryContainer)
-            )
-        }
+        val imageId = if (isSystemInDarkTheme()) R.drawable.hero_night else R.drawable.hero_day
+        Image(
+            painter = painterResource(id = imageId),
+            contentDescription = null,
+            modifier = Modifier.height(230.dp)
+        )
 
         // ── Floating card: Location (top-left) ───────────────────────────
         FloatingBadge(
