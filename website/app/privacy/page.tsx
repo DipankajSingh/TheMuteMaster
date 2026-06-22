@@ -126,7 +126,7 @@ export default function PrivacyPolicy() {
           <li>
             <strong>No Data Transmission:</strong> We do not transmit your
             coordinates to any external server, analytics platform, or third
-            party.
+            party. Your defined Geofence locations are securely registered with your device's native operating system (Google Play Services or Huawei Mobile Services) strictly to enable the background trigger, but they never leave your device.
           </li>
           <li>
             <strong>Retention:</strong> Since data is local, it is retained only
@@ -141,7 +141,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           The Application uses third-party services that may collect information
           used to identify you, including your device&apos;s <strong>Advertising ID</strong>. We utilize these services strictly for
-          functional infrastructure (Maps and Geofencing APIs), as well as app
+          functional infrastructure (Google Play Services / Huawei Mobile Services for Maps and Geofencing APIs), as well as app
           stability and usage analytics.
         </p>
         <p className="mb-2">
@@ -158,6 +158,17 @@ export default function PrivacyPolicy() {
               rel="noopener noreferrer"
             >
               https://policies.google.com/privacy
+            </a>
+          </li>
+          <li>
+            <strong>Huawei Mobile Services (HMS Core / Location Kit):</strong>{" "}
+            <a
+              href="https://consumer.huawei.com/en/privacy/privacy-policy/"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              https://consumer.huawei.com/en/privacy/privacy-policy/
             </a>
           </li>
           <li>
