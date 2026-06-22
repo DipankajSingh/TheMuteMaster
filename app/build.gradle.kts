@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     "gmsImplementation"("com.google.android.gms:play-services-location:21.3.0")
     "hmsImplementation"("com.huawei.hms:location:6.16.0.302")
+    "hmsImplementation"("com.huawei.hms:drm:2.6.0.306")
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)

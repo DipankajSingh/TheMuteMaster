@@ -19,6 +19,8 @@ import com.dipdev.themutemaster.ui.MainViewModel
 import com.dipdev.themutemaster.ui.navigation.AppNavHost
 import com.dipdev.themutemaster.ui.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import com.dipdev.themutemaster.utils.DrmManager
+import android.widget.Toast
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,9 +31,20 @@ class MainActivity : ComponentActivity() {
     // Inject the preferences manager directly
     @Inject lateinit var preferencesManager: PreferencesManager
 
+    @Inject lateinit var drmManager: DrmManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        
+        drmManager.checkDrm(this) { success ->
+            if (!success) {
+                runOnUiThread {
+                    Toast.makeText(this, "DRM Authentication Failed. Please purchase the app from AppGallery.", Toast.LENGTH_LONG).show()
+                    finishAffinity()
+                }
+            }
+        }
 
         // 1. Wait for ViewModel decision (Splash logic)
         splashScreen.setKeepOnScreenCondition {

@@ -7,6 +7,8 @@ import com.dipdev.themutemaster.data.GeofenceManager
 import com.dipdev.themutemaster.data.HmsGeofenceManager
 import com.dipdev.themutemaster.utils.CrashReporter
 import com.dipdev.themutemaster.utils.HmsCrashReporter
+import com.dipdev.themutemaster.utils.DrmManager
+import com.dipdev.themutemaster.utils.DrmManagerImpl
 import com.huawei.hms.location.LocationServices
 import dagger.Binds
 import dagger.Module
@@ -26,6 +28,10 @@ abstract class ServiceBindingMod {
     @Binds
     @Singleton
     abstract fun bindGeofenceManager(impl: HmsGeofenceManager): GeofenceManager
+
+    @Binds
+    @Singleton
+    abstract fun bindDrmManager(impl: DrmManagerImpl): DrmManager
 }
 
 @Module
