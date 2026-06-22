@@ -1,357 +1,319 @@
 package com.dipdev.themutemaster.ui.screens.onboarding
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.rounded.AccessTime
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import com.dipdev.themutemaster.R
+import com.dipdev.themutemaster.ui.components.AppLogo
 
 @Composable
-fun Welcome(
-    onGetStarted: () -> Unit,
-) {
-    var showContent by remember { mutableStateOf(false) }
+fun Welcome(onGetStarted: () -> Unit) {
+
+    // --- Entrance animations ---
+    val enterAlpha = remember { Animatable(0f) }
+    val enterSlide = remember { Animatable(32f) }
 
     LaunchedEffect(Unit) {
-        showContent = true
+        enterAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 700, easing = EaseOutCubic)
+        )
+    }
+    LaunchedEffect(Unit) {
+        enterSlide.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(durationMillis = 700, easing = EaseOutCubic)
+        )
     }
 
-    val brush = Brush.radialGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-            MaterialTheme.colorScheme.background
+    // --- Infinite breathing glow behind hero ---
+    val infiniteTransition = rememberInfiniteTransition(label = "glow")
+    val heroFloat by infiniteTransition.animateFloat(
+        initialValue = -8f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3200, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
         ),
-        radius = 900f
+        label = "heroFloat"
     )
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        BoxWithConstraints(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(brush)
-                .padding(padding)
-        ) {
-            val screenHeight = maxHeight
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .heightIn(min = screenHeight),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-
-                Box(
-                    modifier = Modifier
-                        .padding(top = 60.dp)
-                        .padding(bottom = 24.dp)
-                ) {
-                    AnimatedVisibilityBlock(visible = showContent, delay = 100) {
-                        AppLogo()
-                    }
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        PulseEffect()
-                        Surface(
-                            shape = CircleShape,
-                            shadowElevation = 24.dp,
-                            tonalElevation = 8.dp,
-                            modifier = Modifier.size(140.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.appicon),
-                                contentDescription = "Logo",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(24.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    AnimatedVisibilityBlock(visible = showContent, delay = 300) {
-                        Text(
-                            text = "Master Your Silence",
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    AnimatedVisibilityBlock(visible = showContent, delay = 400) {
-                        Text(
-                            text = buildAnnotatedString {
-                                append("Your phone should know when to be quiet.\nAutomate your audio with ")
-                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                    append("smart mute zones")
-                                }
-                                append(".")
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            lineHeight = 26.sp
-                        )
-                    }
-                }
-
-                // --- BOTTOM SECTION (Button + Footer) ---
-                Column(
-                    modifier = Modifier
-                        .padding(24.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(24.dp)) // Extra space before button
-
-                    // Button
-                    AnimatedVisibilityBlock(visible = showContent, delay = 500) {
-                        Button(
-                            onClick = onGetStarted,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(58.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
-                        ) {
-                            Text(
-                                text = "Get Started",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Icon(Icons.AutoMirrored.Rounded.ArrowForward, null)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Legal Footer
-                    AnimatedVisibilityBlock(visible = showContent, delay = 600) {
-                        LegalFooter()
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ==========================================
-//        HELPER COMPONENTS
-// ==========================================
-
-@Composable
-fun LegalFooter() {
-    val uriHandler = LocalUriHandler.current
-
-    val annotatedString = buildAnnotatedString {
-        append("By continuing, you agree to our ")
-
-        withLink(
-            LinkAnnotation.Clickable(
-                tag = "TERMS",
-                linkInteractionListener = {
-                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+                .graphicsLayer {
+                    alpha = enterAlpha.value
+                    translationY = enterSlide.value
                 },
-                styles = TextLinkStyles(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            )
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            append("Terms of Service")
-        }
 
-        append(" and ")
+            // ── Top Logo ──────────────────────────────────────────────────
+            Spacer(Modifier.height(56.dp))
+            AppLogo()
 
-        withLink(
-            LinkAnnotation.Clickable(
-                tag = "PRIVACY",
-                linkInteractionListener = {
-                    uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
-                },
-                styles = TextLinkStyles(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        textDecoration = TextDecoration.Underline,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                )
-            )
-        ) {
-            append("Privacy Policy")
-        }
-
-        append(".")
-    }
-
-    Text(
-        text = annotatedString,
-        style = MaterialTheme.typography.labelMedium.copy(
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            lineHeight = 18.sp
-        ),
-        modifier = Modifier.padding(horizontal = 16.dp)
-    )
-}
-
-@Composable
-fun AppLogo() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.GraphicEq,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(
-                text = "MuteMaster",
-                style = androidx.compose.ui.text.TextStyle(
-                    fontFamily = FontFamily(Font(R.font.sekuya_regular)),
-                    fontSize = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-            Spacer(modifier = Modifier.width(2.dp))
+            // ── Hero Illustration area ────────────────────────────────────
             Box(
                 modifier = Modifier
-                    .padding(bottom = 5.dp)
-                    .size(6.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-            )
-        }
-    }
-}
-
-@Composable
-fun PulseEffect() {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    PulseRing(infiniteTransition, delay = 0)
-    PulseRing(infiniteTransition, delay = 700)
-    PulseRing(infiniteTransition, delay = 1400)
-}
-
-@Composable
-fun PulseRing(transition: InfiniteTransition, delay: Int) {
-    val scale by transition.animateFloat(
-        initialValue = 1f,
-        targetValue = 2.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, delayMillis = delay, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "scale"
-    )
-
-    val alpha by transition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, delayMillis = delay, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "alpha"
-    )
-
-    Box(
-        modifier = Modifier
-            .size(140.dp)
-            .scale(scale)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = alpha),
-                shape = CircleShape
-            )
-    )
-}
-
-@Composable
-fun AnimatedVisibilityBlock(
-    visible: Boolean,
-    delay: Int,
-    content: @Composable () -> Unit
-) {
-    val alpha = remember { Animatable(0f) }
-    val translationY = remember { Animatable(50f) }
-
-    LaunchedEffect(visible) {
-        if (visible) {
-            delay(delay.toLong())
-            alpha.animateTo(1f, tween(500))
-        }
-    }
-    LaunchedEffect(visible) {
-        if (visible) {
-            delay(delay.toLong())
-            translationY.animateTo(0f, spring(dampingRatio = 0.6f, stiffness = 100f))
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .graphicsLayer {
-                this.alpha = alpha.value
-                this.translationY = translationY.value
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                // Hero illustration — built in Compose, no PNG needed
+                HeroIllustration(
+                    modifier = Modifier
+                        .size(260.dp)
+                        .graphicsLayer { translationY = heroFloat }
+                )
             }
+
+            // ── Bottom Content Card ───────────────────────────────────────
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 0.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 28.dp)
+                        .padding(top = 36.dp, bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    // Tagline chip
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = "✦  Silence is Golden  ✦",
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
+
+                    Spacer(Modifier.height(18.dp))
+
+                    // Main Headline
+                    Text(
+                        text = "Your phone,\nauto-silenced.",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 40.sp
+                    )
+
+                    Spacer(Modifier.height(14.dp))
+
+                    // Sub-copy
+                    Text(
+                        text = "Set a location or a time. Walk in — phone goes silent. Walk out — it's back. Zero effort.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        lineHeight = 24.sp
+                    )
+
+                    Spacer(Modifier.height(32.dp))
+
+                    // CTA Button
+                    Button(
+                        onClick = onGetStarted,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                    ) {
+                        Text(
+                            text = "Get Started",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Privacy note
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Security,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = "100% local · No data leaves your device",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hero Illustration — drawn entirely in Compose using M3 tokens
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun HeroIllustration(modifier: Modifier = Modifier) {
+    val primary = MaterialTheme.colorScheme.primary
+    val primaryContainer = MaterialTheme.colorScheme.primaryContainer
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceContainerHighest
+    val onSurface = MaterialTheme.colorScheme.onSurface
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-        content()
+
+        // ── Central phone frame ───────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .width(120.dp)
+                .height(200.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .background(primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            // Phone screen inner
+            Box(
+                modifier = Modifier
+                    .width(104.dp)
+                    .height(184.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                contentAlignment = Alignment.Center
+            ) {
+                // Muted bell icon — the star of the show
+                Icon(
+                    imageVector = Icons.Rounded.NotificationsOff,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = primary
+                )
+            }
+
+            // Notch
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 8.dp)
+                    .width(30.dp)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(primaryContainer)
+            )
+        }
+
+        // ── Floating card: Location (top-left) ───────────────────────────
+        FloatingBadge(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = 6.dp, y = 42.dp),
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = primary
+                )
+            },
+            label = "Location",
+            surfaceVariant = surfaceVariant,
+            onSurface = onSurface
+        )
+
+        // ── Floating card: Schedule (bottom-right) ────────────────────────
+        FloatingBadge(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(x = (-6).dp, y = (-42).dp),
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.AccessTime,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = primary
+                )
+            },
+            label = "Schedule",
+            surfaceVariant = surfaceVariant,
+            onSurface = onSurface
+        )
+    }
+}
+
+@Composable
+private fun FloatingBadge(
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    label: String,
+    surfaceVariant: androidx.compose.ui.graphics.Color,
+    onSurface: androidx.compose.ui.graphics.Color
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = surfaceVariant,
+        shadowElevation = 8.dp,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            icon()
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = onSurface
+            )
+        }
     }
 }

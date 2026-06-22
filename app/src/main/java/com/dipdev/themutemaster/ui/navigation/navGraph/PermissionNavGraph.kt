@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -39,7 +42,11 @@ fun NavGraphBuilder.permissionGraph(
 
     navigation(
         startDestination = startRoute,
-        route = AppRoute.PERMISSION_FLOW
+        route = AppRoute.PERMISSION_FLOW,
+        enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(400)) },
+        exitTransition = { slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(400)) },
+        popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(400)) },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(400)) }
     ) {
         composable("ALL_GRANTED_EXIT") {
             LaunchedEffect(Unit) { onPermissionsComplete() }

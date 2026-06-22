@@ -44,7 +44,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLocation
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
@@ -87,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.dipdev.themutemaster.ui.components.AppLogo
 import com.dipdev.themutemaster.utils.copyToClipboard
 
 @Composable
@@ -244,24 +244,6 @@ fun ModernHeader(onSettingsClick: () -> Unit, criticalError: Boolean) {
     }
 }
 
-@Composable
-fun AppLogo() {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = Icons.Default.GraphicEq,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(28.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "MuteMaster",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
 
 // --- 2. PULSE INDICATOR (Interactive + Glow Redesign) ---
 @OptIn(ExperimentalFoundationApi::class)

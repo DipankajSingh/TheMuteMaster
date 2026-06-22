@@ -2,38 +2,30 @@ package com.dipdev.themutemaster.ui.screens.permissions.fglocation
 
 import android.Manifest
 import android.app.Activity
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.LocationOn
 import com.dipdev.themutemaster.ui.components.PermissionDialog
 import com.dipdev.themutemaster.utils.hasForegroundLocationPermission
-import com.dipdev.themutemaster.utils.hasLocationPermission
 import com.dipdev.themutemaster.utils.openAppSettings
 
 @Composable
@@ -45,7 +37,7 @@ fun ForegroundLocationAccess(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // --- Business Logic (Preserved) ---
+    // --- Business Logic ---
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -69,7 +61,7 @@ fun ForegroundLocationAccess(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // --- Dialogs (Preserved) ---
+    // --- Dialogs ---
     if (!viewModel.shouldShowPermanentDeniedDialog && viewModel.shouldShowDialog) {
         PermissionDialog(
             title = "Location Permission Required",
@@ -95,185 +87,133 @@ fun ForegroundLocationAccess(
         )
     }
 
-    // --- New Modern UI ---
+    // --- Modern Abstract UI ---
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 1. TOP BAR (T&C)
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                TextButton(onClick = { /* TODO: Open T&C */ }) {
+        containerColor = MaterialTheme.colorScheme.surface,
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = {
+                        if (context.hasForegroundLocationPermission()) {
+                            viewModel.setPermissionGranted()
+                        } else {
+                            val canShowRationale = (context as Activity).shouldShowRequestPermissionRationale(
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            )
+                            if (!canShowRationale && viewModel.foregroundLocationState == ForegroundLocationAccessViewModel.PermissionState.PermanentDenied) {
+                                viewModel.requestPermanentDeniedPermission()
+                            } else {
+                                launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
                     Text(
-                        text = "Terms & Privacy",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "Allow While Using App",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = onSkip,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Maybe Later",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // TOP BAR & PROGRESS
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Step 1 of 4",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { 0.25f },
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primaryContainer
+            )
 
-            Spacer(Modifier.weight(0.1f))
-
-            // 2. HERO IMAGE (Gradient Bubble)
+            // ABSTRACT ILLUSTRATION
             Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ),
-                        shape = CircleShape
-                    )
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.LocationOn,
+                    imageVector = Icons.Rounded.LocationOn,
                     contentDescription = null,
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(120.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
 
-            Spacer(Modifier.height(32.dp))
-
-            // 3. HEADLINE
+            // HEADLINE
             Text(
                 text = "Where are you?",
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "To mute your phone automatically when you arrive at work or school, MuteMaster needs to know your location.",
+                text = "To mute your phone automatically when you arrive at work or school, MuteMaster needs to know your location. This ensures your phone silences exactly when you walk through the door of a saved zone.\n\nYour location data stays on your device. We never share it.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(32.dp))
 
-            // 4. VALUE PROPOSITION LIST
-            Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                LocationBenefitItem(
-                    icon = Icons.Outlined.MyLocation,
-                    title = "Precise Triggers",
-                    desc = "Ensures your phone silences exactly when you walk through the door."
-                )
-                LocationBenefitItem(
-                    icon = Icons.Outlined.Security,
-                    title = "Private & Secure",
-                    desc = "Your location data stays on your device. We never share it."
-                )
+                TextButton(onClick = { /* TODO */ }) {
+                    Text("Privacy Policy")
+                }
+                TextButton(onClick = { /* TODO */ }) {
+                    Text("Terms of Service")
+                }
             }
-
-            Spacer(Modifier.weight(1f))
-
-            // 5. ACTION BUTTONS
-            Button(
-                onClick = {
-
-
-                    if (context.hasForegroundLocationPermission()) {
-                        viewModel.setPermissionGranted()
-                    } else {
-                        // Check logic for permanent denial vs standard request
-                        val canShowRationale = (context as Activity).shouldShowRequestPermissionRationale(
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        )
-                        if (!canShowRationale && viewModel.foregroundLocationState == ForegroundLocationAccessViewModel.PermissionState.PermanentDenied) {
-                            viewModel.requestPermanentDeniedPermission()
-                        } else {
-                            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            ) {
-                Text(
-                    text = "Allow While Using App",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            TextButton(
-                onClick = onSkip,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Maybe Later",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-        }
-    }
-}
-
-// --- Local Helper Composable ---
-@Composable
-private fun LocationBenefitItem(
-    icon: ImageVector,
-    title: String,
-    desc: String
-) {
-    Row(
-        verticalAlignment = Alignment.Top,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-            modifier = Modifier.size(48.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = desc,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 20.sp
-            )
         }
     }
 }
