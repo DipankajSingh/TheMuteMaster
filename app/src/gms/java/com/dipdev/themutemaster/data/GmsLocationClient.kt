@@ -6,6 +6,7 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -36,6 +37,12 @@ class GmsLocationClient (
                 Priority.PRIORITY_HIGH_ACCURACY,
                 CancellationTokenSource().token
             ).await()
+        } catch (e: ApiException) {
+            crashReporter.recordNonFatal(e, context = "DefaultLocationClient.getCurrentLocation")
+            if (e.statusCode == 17) { // API_UNAVAILABLE
+                throw LocationClient.LocationException("Google Play Services is not available or disabled on this device.")
+            }
+            throw LocationClient.LocationException(e.localizedMessage ?: "Google Play Services Error")
         } catch (e: Exception){
             crashReporter.recordNonFatal(e, context = "DefaultLocationClient.getCurrentLocation")
             throw LocationClient.LocationException(e.message ?: "Unknown Error!!!!")

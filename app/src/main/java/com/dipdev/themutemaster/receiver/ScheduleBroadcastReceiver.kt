@@ -13,6 +13,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineExceptionHandler
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -37,7 +38,12 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
         Log.d("ScheduleReceiver", "Alarm triggered for Schedule $scheduleId (isStart=$isStart)")
 
         val pendingResult = goAsync()
-        CoroutineScope(Dispatchers.IO).launch {
+        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            crashReporter.recordNonFatal(throwable, context = "ScheduleBroadcastReceiver coroutine crash")
+            pendingResult.finish()
+        }
+        
+        CoroutineScope(Dispatchers.IO + exceptionHandler).launch {
             crashReporter.log("ScheduleBroadcastReceiver: scheduleId=$scheduleId, isStart=$isStart")
             crashReporter.setKey("last_triggered_schedule_id", scheduleId)
             try {
@@ -69,6 +75,9 @@ class ScheduleBroadcastReceiver : BroadcastReceiver() {
 
                 // Reschedule the alarm for the next week/occurrence
                 alarmScheduler.schedule(schedule)
+            } catch (e: Exception) {
+                Log.e("ScheduleReceiver", "Error processing schedule", e)
+                crashReporter.recordNonFatal(e, context = "ScheduleBroadcastReceiver internal error")
             } finally {
                 pendingResult.finish()
             }

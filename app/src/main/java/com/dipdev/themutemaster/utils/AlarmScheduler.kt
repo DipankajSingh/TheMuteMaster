@@ -29,6 +29,14 @@ class AlarmScheduler @Inject constructor(
         scheduleNextAlarm(scheduleEntity, isStart = false)
     }
 
+    fun hasExactAlarmPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+    }
+
     fun cancel(scheduleEntity: ScheduleEntity) {
         val startIntent = createPendingIntent(scheduleEntity, isStart = true)
         val endIntent = createPendingIntent(scheduleEntity, isStart = false)

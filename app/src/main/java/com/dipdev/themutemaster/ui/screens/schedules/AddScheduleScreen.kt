@@ -1,6 +1,10 @@
 package com.dipdev.themutemaster.ui.screens.schedules
 
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.provider.Settings
+import android.os.Build
+import android.app.AlarmManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,12 +76,20 @@ fun AddScheduleScreen(
         },
     ) {
         CustomTopBar(
-            title = "Edit Schedule",
+            title = if (viewModel.isEditing) "Edit Schedule" else "Create Schedule",
             onBackClick = onBack,
             actionText = "Save",
             onActionClick = {
-                viewModel.saveChanges()
-                onSave()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as AlarmManager
+                    if (!alarmManager.canScheduleExactAlarms()) {
+                        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                        context.startActivity(intent)
+                    }
+                }
+                if (viewModel.saveChanges()) {
+                    onSave()
+                }
             }
         )
 

@@ -7,11 +7,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
+import android.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import android.app.Activity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.dipdev.themutemaster.data.local.AppThemeMode
 import com.dipdev.themutemaster.data.local.PreferencesManager
@@ -43,6 +50,8 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(this, "DRM Authentication Failed. Please purchase the app from AppGallery.", Toast.LENGTH_LONG).show()
                     finishAffinity()
                 }
+            } else {
+                mainViewModel.markDrmComplete()
             }
         }
 
@@ -51,7 +60,6 @@ class MainActivity : ComponentActivity() {
             mainViewModel.isLoading.value
         }
 
-        enableEdgeToEdge()
         setContent {
             // 2. Observe the Theme Preference
             val themeMode by preferencesManager.themeModeFlow
@@ -69,11 +77,47 @@ class MainActivity : ComponentActivity() {
             AppTheme(
                 darkTheme = useDarkTheme // <--- This applies the switch!
             ) {
+                val view = LocalView.current
+                if (!view.isInEditMode) {
+                    SideEffect {
+                        val window = (view.context as Activity).window
+                        
+                        // 1. Enable edge-to-edge drawing
+                        WindowCompat.setDecorFitsSystemWindows(window, false)
+                        
+                        // 2. Make backgrounds completely transparent
+                        @Suppress("DEPRECATION")
+                        window.statusBarColor = android.graphics.Color.TRANSPARENT
+                        @Suppress("DEPRECATION")
+                        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+                        
+                        // 3. Disable Android 10+ contrast enforcement to prevent grey scrims
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                            @Suppress("DEPRECATION")
+                            window.isNavigationBarContrastEnforced = false
+                            @Suppress("DEPRECATION")
+                            window.isStatusBarContrastEnforced = false
+                        }
+                        
+                        // 4. Update the icon colors dynamically
+                        val controller = WindowCompat.getInsetsController(window, view)
+                        controller.isAppearanceLightStatusBars = !useDarkTheme
+                        controller.isAppearanceLightNavigationBars = !useDarkTheme
+                    }
+                }
+
                 val startDest by mainViewModel.startDestination.collectAsState()
 
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if (!mainViewModel.isLoading.collectAsState().value && startDest != null) {
-                        AppNavHost(startDestination = startDest!!)
+                Surface(
+                    modifier = Modifier.fillMaxSize(), 
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier.fillMaxSize().systemBarsPadding()
+                    ) {
+                        if (!mainViewModel.isLoading.collectAsState().value && startDest != null) {
+                            AppNavHost(startDestination = startDest!!)
+                        }
                     }
                 }
             }

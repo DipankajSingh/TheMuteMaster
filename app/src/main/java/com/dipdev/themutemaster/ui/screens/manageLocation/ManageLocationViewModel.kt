@@ -28,6 +28,10 @@ class ManageLocationViewModel @Inject constructor(
     var isMutingEnabled by mutableStateOf(true)
     var locationAddress by mutableStateOf("Loading...")
         private set
+    var latitude by mutableStateOf(0.0)
+        private set
+    var longitude by mutableStateOf(0.0)
+        private set
 
     // Internal tracker for the object
     private var currentEntity: GeofenceEntity? = null
@@ -55,6 +59,8 @@ class ManageLocationViewModel @Inject constructor(
                 radius = found.radius
                 isMutingEnabled = found.isEnabled
                 locationName = found.name
+                latitude = found.latitude
+                longitude = found.longitude
             }
         }
     }

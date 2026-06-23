@@ -23,6 +23,9 @@ class AddScheduleViewModel @Inject constructor(
 
     private val scheduleId: String? = savedStateHandle.get<String>("id")
     private var existingSchedule: ScheduleEntity? = null
+    
+    val isEditing: Boolean
+        get() = scheduleId != null && scheduleId != "null"
 
     var scheduleName by mutableStateOf("")
     var startTimeMins by mutableIntStateOf(540) // 9:00 AM

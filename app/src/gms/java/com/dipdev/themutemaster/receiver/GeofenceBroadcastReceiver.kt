@@ -1,6 +1,7 @@
 package com.dipdev.themutemaster.receiver
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineExceptionHandler
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
@@ -40,7 +41,11 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
         }
 
         val pendingResult = goAsync()
-        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            crashReporter.recordNonFatal(throwable, context = "GeofenceBroadcastReceiver coroutine crash")
+            pendingResult.finish()
+        }
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + exceptionHandler).launch {
             crashReporter.log("GeofenceBroadcastReceiver: transition=${geofencingEvent.geofenceTransition}, geofences=${geofencingEvent.triggeringGeofences?.map { it.requestId }}")        
             try {
                 when (geofencingEvent.geofenceTransition) {
@@ -71,6 +76,9 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                         )
                     }
                 }
+            } catch (e: Exception) {
+                Log.e("GeofenceReceiver", "Error processing geofence transition", e)
+                crashReporter.recordNonFatal(e, context = "GeofenceBroadcastReceiver internal error")
             } finally {
                 pendingResult.finish()
             }

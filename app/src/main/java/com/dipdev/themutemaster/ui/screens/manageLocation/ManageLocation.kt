@@ -1,5 +1,8 @@
 package com.dipdev.themutemaster.ui.screens.manageLocation
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +50,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -64,6 +68,8 @@ fun ManageLocationScreen(
     viewModel: ManageLocationViewModel = hiltViewModel(),
     criticalError: Boolean
     ) {
+    val context = LocalContext.current
+
     Column(
         modifier =
             if (criticalError){
@@ -135,7 +141,7 @@ fun ManageLocationScreen(
                     tonalElevation = 2.dp
                 ) {
                     Text(
-                        text = "Lat: 28.61 • Lng: 77.20",
+                        text = "Lat: ${String.format("%.4f", viewModel.latitude)} • Lng: ${String.format("%.4f", viewModel.longitude)}",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace
@@ -182,7 +188,14 @@ fun ManageLocationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     trailingIcon = {
-                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(18.dp))
+                        IconButton(onClick = {
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clip = ClipData.newPlainText("Address", viewModel.locationAddress)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(context, "Address copied", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(18.dp))
+                        }
                     },
                     supportingText = { Text("Detected automatically from coordinates") }
                 )

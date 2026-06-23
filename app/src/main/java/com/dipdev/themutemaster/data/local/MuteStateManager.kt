@@ -5,7 +5,8 @@ import android.media.AudioManager
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.dipdev.themutemaster.data.local.PreferencesManager
@@ -24,27 +25,31 @@ class MuteStateManager @Inject constructor(
         private const val KEY_ORIGINAL_MEDIA_VOLUME = "original_media_volume"
     }
 
+    private val mutex = Mutex()
+
     /**
      * Called on trigger ENTER.
      * Returns TRUE if this was the first trigger (we took control).
      * The trigger is ALWAYS registered so that attemptRestore works correctly.
      */
-    fun attemptMute(triggerId: String, profile: SoundProfile? = null): Boolean {
+    suspend fun attemptMute(triggerId: String, profile: SoundProfile? = null): Boolean = mutex.withLock {
         val triggers = getActiveTriggers().toMutableSet()
         val isFirstTrigger = triggers.isEmpty()
 
         // Determine the profile to apply
         val ringerModeToApply = profile?.ringerMode ?: AudioManager.RINGER_MODE_VIBRATE
-        val muteMedia = profile?.muteMedia ?: runBlocking { preferencesManager.muteMediaVolumeFlow.first() }
+        val muteMedia = profile?.muteMedia ?: preferencesManager.muteMediaVolumeFlow.first()
         val customMediaVol = profile?.customMediaVolumePercent
 
         if (isFirstTrigger) {
             val currentRinger = audioManager.ringerMode
 
             // Save original states BEFORE we change anything
-            prefs.edit().putInt(KEY_ORIGINAL_RINGER, currentRinger).apply()
             val currentMediaVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-            prefs.edit().putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol).apply()
+            prefs.edit()
+                .putInt(KEY_ORIGINAL_RINGER, currentRinger)
+                .putInt(KEY_ORIGINAL_MEDIA_VOLUME, currentMediaVol)
+                .apply()
 
             // Only change ringer if the phone isn't already silent/vibrate
             if (currentRinger == AudioManager.RINGER_MODE_NORMAL) {
@@ -84,7 +89,7 @@ class MuteStateManager @Inject constructor(
      * Called on trigger EXIT.
      * Returns TRUE if we restored the volume (meaning no triggers left).
      */
-    fun attemptRestore(triggerId: String): Boolean {
+    suspend fun attemptRestore(triggerId: String): Boolean = mutex.withLock {
         val triggers = getActiveTriggers().toMutableSet()
         if (!triggers.contains(triggerId)) return false
         
