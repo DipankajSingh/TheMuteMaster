@@ -42,7 +42,7 @@ class HomeViewModel @Inject constructor(
         private set
 
     private var lastFetchTime: Long = 0
-    private val CACHE_TIMEOUT = 60 * 3000L
+    private val CACHE_TIMEOUT = 30 * 1000L
 
     init {
         viewModelScope.launch {
@@ -133,6 +133,11 @@ class HomeViewModel @Inject constructor(
                 uiState = uiState.copy(
                     isError = true,
                     locationText = "Location permission missing."
+                )
+            } catch (e: LocationClient.LocationException) {
+                uiState = uiState.copy(
+                    isError = true,
+                    locationText = e.message ?: "Location error"
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(

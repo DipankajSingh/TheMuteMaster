@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android.plugin)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics.plugin)
+    id("com.huawei.agconnect")
 }
 
 android {
@@ -28,6 +28,16 @@ android {
 
     }
 
+    flavorDimensions += "services"
+    productFlavors {
+        create("gms") {
+            dimension = "services"
+        }
+        create("hms") {
+            dimension = "services"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -43,8 +53,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     buildFeatures {
@@ -68,17 +80,20 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    "gmsImplementation"("com.google.android.gms:play-services-location:21.3.0")
+    "hmsImplementation"("com.huawei.hms:location:6.16.0.302")
+    "hmsImplementation"("com.huawei.hms:drm:2.6.0.306")
     implementation(libs.hilt.android)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.hilt.android.compiler)
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "gmsImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     testImplementation(libs.junit)
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
     testImplementation("org.robolectric:robolectric:4.12.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.test:core-ktx:1.5.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -93,7 +108,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics)
+    "gmsImplementation"(platform(libs.firebase.bom))
+    "gmsImplementation"(libs.firebase.analytics)
+    "gmsImplementation"(libs.firebase.crashlytics)
 }
