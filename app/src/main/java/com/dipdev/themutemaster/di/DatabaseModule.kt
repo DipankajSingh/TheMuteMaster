@@ -25,6 +25,7 @@ object DatabaseModule {
             "geofence_db.db"
         )
         .addMigrations(GeofenceDatabase.MIGRATION_1_2)
+        .fallbackToDestructiveMigration()
         .build()
     }
 
