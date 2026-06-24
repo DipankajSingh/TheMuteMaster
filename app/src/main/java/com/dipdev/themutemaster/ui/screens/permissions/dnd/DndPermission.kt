@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import com.dipdev.themutemaster.ui.components.AnimatedToggleInstruction
+import com.dipdev.themutemaster.ui.components.AnimatedDndInstruction
 import com.dipdev.themutemaster.ui.components.IllustrationType
 import com.dipdev.themutemaster.ui.components.PermissionIllustration
 import com.dipdev.themutemaster.utils.hasDndPermission
@@ -168,32 +168,15 @@ fun DndPermissionScreen(
                     )
                 }
 
-                Spacer(Modifier.height(24.dp))
             } else {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = "Follow these steps in Settings:",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "1. Find 'MuteMaster' in the list\n2. Toggle the switch to 'On'\n3. Tap 'Allow' if prompted",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 28.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(Modifier.height(32.dp))
+                // MIDDLE VISUAL (DYNAMIC SCALE)
                 Box(
                     modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    AnimatedToggleInstruction(
-                        targetName = "MuteMaster",
-                        icon = Icons.Default.DoNotDisturbOn
+                    AnimatedDndInstruction(
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
