@@ -17,7 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.dipdev.themutemaster.ui.components.AnimatedListInstruction
+import com.dipdev.themutemaster.ui.components.AnimatedLocationInstruction
 import com.dipdev.themutemaster.ui.components.IllustrationType
 import com.dipdev.themutemaster.ui.components.PermissionIllustration
 
@@ -181,9 +181,11 @@ fun BackgroundLocationAccess(
                 // MIDDLE VISUAL (DYNAMIC SCALE)
                 Box(
                     modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.BottomCenter
                 ) {
-                    AnimatedListInstruction(targetOption = "Allow all the time")
+                    AnimatedLocationInstruction(
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }

@@ -19,3 +19,17 @@
 
 # Firebase Crashlytics — keep custom exceptions
 -keep public class * extends java.lang.Exception
+
+# Keep Firebase Crashlytics and components for R8
+-keep class com.google.firebase.crashlytics.** { *; }
+-keep class com.google.firebase.components.** { *; }
+
+# Keep Room Database implementations
+-keep class * extends androidx.room.RoomDatabase
+-keep class **_Impl {
+    <init>(...);
+}
+
+# Keep Huawei HMS components for R8
+-keep class com.huawei.** { *; }
+-dontwarn com.huawei.**

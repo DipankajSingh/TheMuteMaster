@@ -171,6 +171,22 @@ fun DndPermissionScreen(
                 Spacer(Modifier.height(24.dp))
             } else {
                 Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    text = "Follow these steps in Settings:",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "1. Find 'MuteMaster' in the list\n2. Toggle the switch to 'On'\n3. Tap 'Allow' if prompted",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 28.sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(32.dp))
                 Box(
                     modifier = Modifier.weight(1f),
                     contentAlignment = Alignment.Center
