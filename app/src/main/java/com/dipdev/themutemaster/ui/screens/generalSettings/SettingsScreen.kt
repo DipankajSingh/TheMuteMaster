@@ -123,7 +123,7 @@ fun GeneralSettingsScreen(
                     icon = Icons.Rounded.Security,
                     title = "Privacy Policy",
                     onClick = {
-                        uriHandler.openUri("https://dipankajsingh.github.io/MuteMaster/")
+                        uriHandler.openUri("https://the-mute-master.vercel.app/privacy")
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
