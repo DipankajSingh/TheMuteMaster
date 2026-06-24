@@ -136,6 +136,15 @@ img {
   filter: brightness(0.95);
 }
 
+/* Force Prose Typography to use our exact theme colors for perfect readability */
+.prose, .prose * {
+  color: var(--foreground) !important;
+  border-color: color-mix(in oklab, var(--foreground) 20%, transparent) !important;
+}
+.prose a {
+  color: var(--color-primary) !important;
+}
+
 /* Icon container styling */
 .icon-container {
   background-color: color-mix(in oklab, var(--color-primary) 20%, transparent);
