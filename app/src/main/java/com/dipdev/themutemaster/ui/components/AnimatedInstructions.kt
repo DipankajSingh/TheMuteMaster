@@ -10,6 +10,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -104,7 +108,7 @@ fun MockSettingsScreen(
     MockDeviceFrame(modifier = modifier) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .background(Color.White)
                 .padding(bottom = 16.dp)
         ) {
@@ -126,7 +130,7 @@ fun MockSettingsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
             
-            Box(modifier = Modifier.fillMaxWidth().height(350.dp).clipToBounds()) {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f).clipToBounds()) {
                 content()
             }
         }
@@ -134,7 +138,15 @@ fun MockSettingsScreen(
 }
 
 @Composable
-fun AppListRow(name: String, status: String, isMuteMaster: Boolean = false, highlightAlpha: Float = 0f) {
+fun AppListRow(
+    name: String, 
+    status: String, 
+    isMuteMaster: Boolean = false, 
+    highlightAlpha: Float = 0f,
+    iconVector: androidx.compose.ui.graphics.vector.ImageVector? = null,
+    iconBgColor: Color = Color.LightGray,
+    iconTint: Color = Color.White
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,6 +160,13 @@ fun AppListRow(name: String, status: String, isMuteMaster: Boolean = false, high
                 contentDescription = null,
                 modifier = Modifier.size(40.dp).clip(CircleShape)
             )
+        } else if (iconVector != null) {
+            Box(
+                modifier = Modifier.size(40.dp).background(iconBgColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = iconVector, contentDescription = null, tint = iconTint, modifier = Modifier.size(24.dp))
+            }
         } else {
             Box(
                 modifier = Modifier.size(40.dp).background(Color.LightGray, CircleShape),
@@ -337,15 +356,15 @@ fun AnimatedDndInstruction(modifier: Modifier = Modifier) {
         // SCREEN 1 (List)
         Box(modifier = Modifier.fillMaxSize().alpha(screen1Alpha)) {
             Column(modifier = Modifier.fillMaxWidth().offset(y = listScrollOffset.dp)) {
-                AppListRow("Digital Wellbeing", "Allowed")
-                AppListRow("Gmail", "Not allowed")
-                AppListRow("Google Play services", "Not allowed")
-                Box(contentAlignment = Alignment.CenterStart) {
+                AppListRow("Gmail", "Not allowed", iconVector = Icons.Default.Email, iconBgColor = Color.White, iconTint = Color(0xFFEA4335))
+                AppListRow("Instagram", "Not allowed", iconVector = Icons.Default.CameraAlt, iconBgColor = Color(0xFFE1306C))
+                AppListRow("Spotify", "Not allowed", iconVector = Icons.Default.PlayArrow, iconBgColor = Color(0xFF1DB954))
+                Box(contentAlignment = Alignment.CenterEnd) {
                     AppListRow("Mute Master", "Not allowed", isMuteMaster = true, highlightAlpha = rowHighlightAlpha)
                     
                     Box(
                         modifier = Modifier
-                            .padding(start = 200.dp, top = 20.dp)
+                            .padding(end = 40.dp, top = 20.dp)
                             .offset(y = finger1OffsetY.dp)
                             .size(40.dp)
                             .scale(finger1Scale)
@@ -353,7 +372,7 @@ fun AnimatedDndInstruction(modifier: Modifier = Modifier) {
                             .background(Color.Gray.copy(alpha = 0.4f), CircleShape)
                     )
                 }
-                AppListRow("WhatsApp", "Not allowed")
+                AppListRow("WhatsApp", "Not allowed", iconVector = Icons.Default.Phone, iconBgColor = Color(0xFF25D366))
             }
         }
 
