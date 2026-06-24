@@ -37,7 +37,6 @@ android {
             dimension = "services"
         }
     }
-
     buildTypes {
         release {
             isMinifyEnabled = true

@@ -1,11 +1,25 @@
 package com.dipdev.themutemaster.ui.components
 
 import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,7 +29,6 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -194,8 +207,8 @@ fun AnimatedDndInstruction(modifier: Modifier = Modifier) {
                 durationMillis = 6000
                 0f at 0
                 0f at 1000
-                -60f at 2000
-                -60f at 6000
+                -80f at 2000
+                -80f at 6000
             }
         ), label = "scroll"
     )
@@ -205,8 +218,8 @@ fun AnimatedDndInstruction(modifier: Modifier = Modifier) {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                -50f at 0
-                -50f at 2200
+                50f at 0
+                50f at 2200
                 0f at 2500
                 0f at 3200
                 0f at 6000
@@ -219,8 +232,8 @@ fun AnimatedDndInstruction(modifier: Modifier = Modifier) {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 6000
-                -50f at 0
-                -50f at 4000
+                50f at 0
+                50f at 4000
                 0f at 4300
                 0f at 5200
                 0f at 6000
@@ -442,7 +455,7 @@ fun AnimatedLocationInstruction(modifier: Modifier = Modifier) {
         animationSpec = infiniteRepeatable(
             animation = keyframes {
                 durationMillis = 3000
-                -50f at 0
+                50f at 0
                 0f at 800
                 0f at 1600
                 100f at 2000

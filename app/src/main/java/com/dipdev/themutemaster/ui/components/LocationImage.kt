@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Fill
@@ -37,14 +36,13 @@ fun LocationImage() {
         val strokeWidth = w * 0.04f
 
         val pinTopRadius = w * 0.35f
-        val pinCenterY = pinTopRadius
         val pinCenterX = w / 2
 
         val pinPath = Path().apply {
-            moveTo(pinCenterX - pinTopRadius, pinCenterY)
+            moveTo(pinCenterX - pinTopRadius, pinTopRadius)
             arcTo(
                 rect = Rect(
-                    center = Offset(pinCenterX, pinCenterY),
+                    center = Offset(pinCenterX, pinTopRadius),
                     radius = pinTopRadius
                 ),
                 startAngleDegrees = 180f,
@@ -70,19 +68,19 @@ fun LocationImage() {
         drawCircle(
             color = holeColor,
             radius = pinTopRadius * 0.4f,
-            center = Offset(pinCenterX, pinCenterY)
+            center = Offset(pinCenterX, pinTopRadius)
         )
         drawCircle(
             color = outlineColor.copy(alpha = 0.5f),
             radius = pinTopRadius * 0.4f,
-            center = Offset(pinCenterX, pinCenterY),
+            center = Offset(pinCenterX, pinTopRadius),
             style = Stroke(width = strokeWidth * 0.5f)
         )
 
         val badgeRadius = w * 0.1f
         val badgeCenter = Offset(
             x = pinCenterX + pinTopRadius * 0.8f,
-            y = pinCenterY - pinTopRadius * 0.8f
+            y = pinTopRadius - pinTopRadius * 0.8f
         )
 
         drawCircle(

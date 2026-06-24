@@ -67,6 +67,16 @@ export default function TermsAndConditions() {
           </li>
           <li>
             <a
+              href="https://consumer.huawei.com/en/privacy/privacy-policy/"
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Huawei Mobile Services
+            </a>
+          </li>
+          <li>
+            <a
               href="https://firebase.google.com/terms/"
               className="text-primary hover:underline"
               target="_blank"

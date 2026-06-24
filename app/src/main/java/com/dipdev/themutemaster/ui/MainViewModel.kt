@@ -30,6 +30,8 @@ class MainViewModel @Inject constructor(
 
         private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
             crashReporter.recordNonFatal(throwable, context = "MainViewModel coroutine")
+            _startDestination.value = AppRoute.WELCOME
+            _isLoading.value = false
         }
 
         private val _isDrmComplete = MutableStateFlow(false)

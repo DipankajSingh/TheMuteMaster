@@ -1,5 +1,7 @@
 package com.dipdev.themutemaster.ui.screens.generalSettings
 
+import android.content.Intent
+import android.net.Uri
 import com.dipdev.themutemaster.BuildConfig
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.Security
+import androidx.compose.material.icons.rounded.Mail
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,6 +46,7 @@ fun GeneralSettingsScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
 
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     Column(modifier =
         if (criticalError) {
@@ -123,6 +127,19 @@ fun GeneralSettingsScreen(
                     }
                 )
                 HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
+                SettingsAction(
+                    icon = Icons.Rounded.Mail,
+                    title = "Send Feedback",
+                    subtitle = "Report bugs or suggest features",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:dipankajsingh25@gmail.com")
+                            putExtra(Intent.EXTRA_SUBJECT, "Feedback for The Mute Master")
+                            putExtra(Intent.EXTRA_TEXT, "\n\n--- Device Info ---\nApp Version: ${BuildConfig.VERSION_NAME}\nAndroid Version: ${android.os.Build.VERSION.RELEASE}")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

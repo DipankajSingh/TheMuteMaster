@@ -94,7 +94,10 @@ export default function PrivacyPolicy() {
         <h3 className="text-xl font-medium mt-6 mb-3">B. Device State & Other Permissions</h3>
         <ul className="list-disc pl-6 mb-8 space-y-4">
           <li>
-            <strong>Audio Settings (ACCESS_NOTIFICATION_POLICY):</strong> Read/Write access to Ringer and Media volume settings. Used to toggle the phone between Ring, Vibrate, and Silent modes, and to set custom media volume levels when a schedule or geofence activates.
+            <strong>Foreground Services:</strong> We utilize persistent foreground services to reliably monitor your geofences and schedules without the Android or Huawei Operating Systems closing the app in the background.
+          </li>
+          <li>
+            <strong>Do Not Disturb (DND) Access (ACCESS_NOTIFICATION_POLICY):</strong> Read/Write access to Ringer and Media volume settings. We require Do Not Disturb access to completely silence the device or manage priority interruptions during scheduled or geofenced events.
           </li>
           <li>
             <strong>Notifications (POST_NOTIFICATIONS):</strong> Permission to post status bar alerts. Used to inform you when the app has automatically changed your ringer mode.
@@ -120,7 +123,7 @@ export default function PrivacyPolicy() {
           <li>
             <strong>No Cloud Storage:</strong> Your location history, saved
             zones, and preferences are stored locally in your device&apos;s internal
-            database (SQLite/Shared Preferences). We do not operate a backend
+            database (SQLite, Shared Preferences, and DataStore). We do not operate a backend
             server to store user data.
           </li>
           <li>

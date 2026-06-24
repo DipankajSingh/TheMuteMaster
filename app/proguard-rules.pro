@@ -33,3 +33,6 @@
 # Keep Huawei HMS components for R8
 -keep class com.huawei.** { *; }
 -dontwarn com.huawei.**
+
+# Prevent DataStore serialization crash by keeping AppThemeMode enum names
+-keep class com.dipdev.themutemaster.data.local.AppThemeMode { *; }

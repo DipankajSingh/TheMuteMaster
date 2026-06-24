@@ -2,12 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { MapPin, Battery, Shield, Clock } from "lucide-react";
 import { FaAndroid } from "react-icons/fa";
 import { SiGoogleplay } from "react-icons/si";
 import { ThemeToggle } from "./components/ThemeToggle";
 
 export default function Home() {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted && resolvedTheme === "dark";
+
   return (
     <div className="flex flex-col min-h-screen font-sans selection:bg-primary/30">
       {/* Header */}
@@ -84,14 +95,14 @@ export default function Home() {
         </div>
 
         {/* Visual Content (Screenshots) */}
-        <div className="flex-1 relative w-full flex justify-center z-10 mt-16 md:mt-0">
-          <div className="relative w-72 md:w-[320px] aspect-9/19 rounded-[2.5rem] overflow-hidden border-8 border-foreground/5 bg-background shadow-2xl hover:scale-[1.02] transition-transform duration-500">
+        <div className="flex-1 relative w-full flex justify-center z-10 mt-16 md:mt-0 animate-float">
+          <div className="relative w-72 md:w-[320px] aspect-[9/19] rounded-[2.5rem] overflow-hidden border-8 border-foreground/5 bg-background shadow-2xl hover:scale-[1.02] transition-transform duration-500">
             <Image
-              src="/images/screenshot-1.png"
+              src={isDark ? "/images/welcome_night.jpg" : "/images/welcome_day.jpg"}
               alt="The Mute Master App Screenshot"
               fill
               sizes="(max-width: 768px) 100vw, 320px"
-              className="object-cover"
+              className="object-cover transition-opacity duration-500"
               priority
             />
           </div>
@@ -163,16 +174,21 @@ export default function Home() {
       </section>
 
       {/* Intelligent Mute Lock Section */}
-      <section className="py-24 w-full bg-primary/5">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-16">
-          <div className="flex-1 order-2 md:order-1 flex justify-center relative w-full">
-            <div className="relative w-64 md:w-75 aspect-9/19 shadow-2xl rounded-[2.5rem] overflow-hidden border-8 border-foreground/10 bg-background">
+      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
+        {/* Animated Background Blobs */}
+        <div className="absolute top-10 left-10 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob dark:mix-blend-screen"></div>
+        <div className="absolute top-0 right-10 w-72 h-72 bg-android-green/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 dark:mix-blend-screen"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000 dark:mix-blend-screen"></div>
+
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center relative z-10">
+          <div className="flex-1 order-2 md:order-1 flex justify-center relative w-full animate-float-delayed">
+            <div className="relative w-64 md:w-[300px] aspect-[9/19] shadow-2xl rounded-[2.5rem] overflow-hidden border-8 border-foreground/10 bg-background transition-transform duration-700 hover:scale-[1.03]">
               <Image
-                src="/images/screenshot-1.png"
+                src={isDark ? "/images/home_night.jpg" : "/images/home_day.jpg"}
                 alt="App Screenshot"
                 fill
                 sizes="(max-width: 768px) 100vw, 300px"
-                className="object-cover"
+                className="object-cover transition-opacity duration-500"
               />
             </div>
             {/* Overlay graphic indicating "Multiple Triggers" */}
@@ -278,14 +294,14 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="flex-1 flex justify-center relative w-full">
-            <div className="relative w-64 md:w-75 aspect-9/19 shadow-2xl rounded-[2.5rem] overflow-hidden border-8 border-foreground/10 bg-background">
+          <div className="flex-1 flex justify-center relative w-full animate-float">
+            <div className="relative w-64 md:w-[300px] aspect-[9/19] shadow-2xl rounded-[2.5rem] overflow-hidden border-8 border-foreground/10 bg-background transition-transform duration-700 hover:scale-[1.03]">
               <Image
-                src="/images/screenshot-4.png"
+                src={isDark ? "/images/saved_zone_night.jpg" : "/images/saved_zone_day.jpg"}
                 alt="Adding a new location"
                 fill
                 sizes="(max-width: 768px) 100vw, 300px"
-                className="object-cover"
+                className="object-cover transition-opacity duration-500"
               />
             </div>
           </div>
