@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import StructuredData from "./components/StructuredData";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
 });
 
@@ -20,21 +20,24 @@ export const metadata: Metadata = {
     "The Mute Master is an elegant Android app that automatically silences your phone in quiet zones or on a custom schedule. Manage audio settings with location and time-based automation. Download free on Google Play Store.",
   keywords: [
     "Mute Master",
+    "Location-based silent mode",
+    "Automatic phone silencer",
+    "Auto-mute app",
+    "Geofencing silent mode",
+    "Smart phone automation",
+    "Geofenced Do Not Disturb",
+    "Context-aware sound profiles",
+    "Location-aware ringer control",
+    "Battery-efficient geofencing",
     "auto mute",
     "mute by location",
     "silence by location",
-    "location automation",
-    "mute schedule",
     "time based muting",
     "auto silent mode",
-    "Android App",
-    "Audio Control",
-    "Volume Manager",
-    "Mute App",
-    "Silent Mode",
-    "Geofencing",
     "Quiet Zones",
-    "Do Not Disturb",
+    "App to mute phone in meetings automatically",
+    "Prevent phone from ringing in class",
+    "Automatically turn on Do Not Disturb at location"
   ],
   metadataBase: new URL("https://dipankajsingh.github.io"),
   alternates: {
@@ -110,7 +113,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} font-sans antialiased`}
       >
         <link rel="icon" href="/favicon.ico" />
         <StructuredData />
