@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Mail
+import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.VolumeOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,6 +42,7 @@ fun GeneralSettingsScreen(
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val defaultRadius by viewModel.defaultRadius.collectAsStateWithLifecycle()
     val muteMediaVolume by viewModel.muteMediaVolume.collectAsStateWithLifecycle()
+    val enableAnalytics by viewModel.enableAnalytics.collectAsStateWithLifecycle()
 
     // 2. Local State for Dialogs
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -119,6 +121,14 @@ fun GeneralSettingsScreen(
 
             // --- SECTION 3: GENERAL ---
             SettingsGroup("General") {
+                SettingsSwitch(
+                    icon = Icons.Rounded.Analytics,
+                    title = "Share Usage & Crash Data",
+                    subtitle = "Help us improve by sharing anonymized data",
+                    checked = enableAnalytics,
+                    onCheckedChange = { viewModel.setAnalyticsEnabled(it) }
+                )
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(0.2f))
                 SettingsAction(
                     icon = Icons.Rounded.Security,
                     title = "Privacy Policy",

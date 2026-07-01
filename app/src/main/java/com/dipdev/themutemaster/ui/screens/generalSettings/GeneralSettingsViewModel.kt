@@ -38,6 +38,13 @@ class GeneralSettingsViewModel @Inject constructor(
             initialValue = false
         )
 
+    val enableAnalytics: StateFlow<Boolean> = preferencesManager.enableAnalyticsFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
     // 2. Updated: Sets the Enum mode
     fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {
@@ -54,6 +61,12 @@ class GeneralSettingsViewModel @Inject constructor(
     fun setMuteMediaVolume(mute: Boolean) {
         viewModelScope.launch {
             preferencesManager.setMuteMediaVolume(mute)
+        }
+    }
+
+    fun setAnalyticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setAnalyticsEnabled(enabled)
         }
     }
 }

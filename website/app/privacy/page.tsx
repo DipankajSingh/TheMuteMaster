@@ -114,7 +114,7 @@ export default function PrivacyPolicy() {
         </ul>
 
         <h2 className="text-2xl font-semibold mt-8 mb-4 border-b border-foreground/50 pb-2">
-          3. Data Storage and Retention (Local Only Policy)
+          3. Location Storage (Local Only)
         </h2>
         <p className="mb-4">
           We are committed to a &quot;Local First&quot; architecture.
@@ -124,11 +124,11 @@ export default function PrivacyPolicy() {
             <strong>No Cloud Storage:</strong> Your location history, saved
             zones, and preferences are stored locally in your device&apos;s internal
             database (SQLite, Shared Preferences, and DataStore). We do not operate a backend
-            server to store user data.
+            server to store user location data.
           </li>
           <li>
-            <strong>No Data Transmission:</strong> We do not transmit your
-            coordinates to any external server, analytics platform, or third
+            <strong>No Location Transmission:</strong> We do not transmit your
+            GPS coordinates to any external server, analytics platform, or third
             party. Your defined Geofence locations are securely registered with your device's native operating system (Google Play Services or Huawei Mobile Services) strictly to enable the background trigger, but they never leave your device.
           </li>
           <li>
@@ -146,6 +146,9 @@ export default function PrivacyPolicy() {
           used to identify you, including your device&apos;s <strong>Advertising ID</strong>. We utilize these services strictly for
           functional infrastructure (Google Play Services / Huawei Mobile Services for Maps and Geofencing APIs), as well as app
           stability and usage analytics.
+        </p>
+        <p className="mb-4">
+          <strong>Opt-Out:</strong> You can choose to opt-out of sharing anonymized usage and crash data at any time by disabling &quot;Share Usage &amp; Crash Data&quot; in the app&apos;s General Settings.
         </p>
         <p className="mb-2">
           Link to privacy policy of third-party service providers used by the

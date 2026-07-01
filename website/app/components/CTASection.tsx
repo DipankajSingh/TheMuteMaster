@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Smartphone } from "lucide-react";
-import { SiGoogleplay } from "react-icons/si";
+import { SiGoogleplay, SiHuawei } from "react-icons/si";
 
 export function CTASection() {
   return (
@@ -27,15 +27,24 @@ export function CTASection() {
           Join thousands of users who have automated their device's ringer. Download The Mute Master for free today.
         </p>
         
-        <div className="pt-6">
+        <div className="pt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
           <a
             href="https://play.google.com/store/apps/details?id=com.dipdev.themutemaster&pcampaignid=web_share"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-white text-black font-bold text-lg md:text-xl px-10 py-5 rounded-full shadow-2xl hover:scale-105 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] active:scale-95"
+            className="inline-flex items-center justify-center gap-3 bg-white text-black font-bold text-lg px-8 py-4 rounded-full shadow-2xl hover:scale-105 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] active:scale-95 w-full sm:w-auto"
           >
-            <SiGoogleplay className="w-6 h-6 md:w-7 md:h-7" />
-            Download Free on Google Play
+            <SiGoogleplay className="w-5 h-5 md:w-6 md:h-6" />
+            Google Play
+          </a>
+          <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-3 bg-[#cf0a2c] text-white font-bold text-lg px-8 py-4 rounded-full shadow-2xl hover:scale-105 transition-all hover:shadow-[0_20px_50px_rgba(207,10,44,0.4)] active:scale-95 w-full sm:w-auto"
+          >
+            <SiHuawei className="w-5 h-5 md:w-6 md:h-6" />
+            AppGallery
           </a>
         </div>
         <p className="text-white/80 text-xs md:text-sm pt-8 font-medium tracking-widest uppercase drop-shadow-sm">

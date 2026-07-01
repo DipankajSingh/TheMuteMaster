@@ -52,6 +52,9 @@ export default function TermsAndConditions() {
           anonymized usage data and crash reports. They do not access your geofencing locations.
         </p>
         <p className="mb-4">
+          <strong>Opt-Out:</strong> You can choose to opt-out of sharing this data at any time by navigating to the app&apos;s General Settings and disabling the &quot;Share Usage &amp; Crash Data&quot; toggle.
+        </p>
+        <p className="mb-4">
           Links to Terms and Conditions of third-party service providers used by the app:
         </p>
         <ul className="list-disc pl-6 mb-8 space-y-2">

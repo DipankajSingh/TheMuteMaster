@@ -28,7 +28,7 @@ export function FAQSection() {
           },
           {
             question: "Does the app need an internet connection to work?",
-            answer: "No, all location processing and muting happens 100% locally on your device. We do not collect or upload your location data to any servers, preserving your absolute privacy."
+            answer: "No, all location processing and muting happens 100% locally on your device. We do not collect or upload your location data to any servers, preserving your absolute privacy. An internet connection is only used if you opt-in to share anonymized usage analytics."
           },
           {
             question: "What happens if a location rule and a time rule overlap?",

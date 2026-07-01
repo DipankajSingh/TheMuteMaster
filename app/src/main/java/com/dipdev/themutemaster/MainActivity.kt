@@ -47,8 +47,14 @@ class MainActivity : ComponentActivity() {
         drmManager.checkDrm(this) { success ->
             if (!success) {
                 runOnUiThread {
-                    Toast.makeText(this, "DRM Authentication Failed. Please purchase the app from AppGallery.", Toast.LENGTH_LONG).show()
-                    finishAffinity()
+                    android.app.AlertDialog.Builder(this)
+                        .setTitle("License Required")
+                        .setMessage("DRM Authentication Failed. You need to purchase this app from the Huawei AppGallery to use it.")
+                        .setCancelable(false)
+                        .setPositiveButton("Exit") { _, _ ->
+                            finishAffinity()
+                        }
+                        .show()
                 }
             } else {
                 mainViewModel.markDrmComplete()
@@ -64,6 +70,32 @@ class MainActivity : ComponentActivity() {
             // 2. Observe the Theme Preference
             val themeMode by preferencesManager.themeModeFlow
                 .collectAsState(initial = AppThemeMode.SYSTEM)
+
+            // 2b. Observe Analytics Preference and set Firebase configuration
+            val enableAnalytics by preferencesManager.enableAnalyticsFlow
+                .collectAsState(initial = true)
+
+            val context = androidx.compose.ui.platform.LocalContext.current
+            // Make sure Firebase respects user's preference
+            androidx.compose.runtime.LaunchedEffect(enableAnalytics) {
+                try {
+                    // Firebase Analytics
+                    val analyticsClass = Class.forName("com.google.firebase.analytics.FirebaseAnalytics")
+                    val getInstanceMethod = analyticsClass.getMethod("getInstance", android.content.Context::class.java)
+                    val analyticsInstance = getInstanceMethod.invoke(null, context)
+                    val setCollectionMethod = analyticsClass.getMethod("setAnalyticsCollectionEnabled", Boolean::class.java)
+                    setCollectionMethod.invoke(analyticsInstance, enableAnalytics)
+
+                    // Firebase Crashlytics
+                    val crashlyticsClass = Class.forName("com.google.firebase.crashlytics.FirebaseCrashlytics")
+                    val getCrashlyticsInstanceMethod = crashlyticsClass.getMethod("getInstance")
+                    val crashlyticsInstance = getCrashlyticsInstanceMethod.invoke(null)
+                    val setCrashlyticsCollectionMethod = crashlyticsClass.getMethod("setCrashlyticsCollectionEnabled", Boolean::class.java)
+                    setCrashlyticsCollectionMethod.invoke(crashlyticsInstance, enableAnalytics)
+                } catch (e: Exception) {
+                    // Firebase might not be available on HMS-only devices, ignore if it crashes
+                }
+            }
 
             // 3. Calculate the actual boolean for Dark Mode
             // isSystemInDarkTheme() checks the global Android setting

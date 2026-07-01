@@ -22,6 +22,7 @@ class PreferencesManager @Inject constructor(
         val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
         val KEY_DEFAULT_RADIUS = floatPreferencesKey("default_radius")
         val KEY_MUTE_MEDIA_VOLUME = androidx.datastore.preferences.core.booleanPreferencesKey("mute_media_volume")
+        val KEY_ENABLE_ANALYTICS = androidx.datastore.preferences.core.booleanPreferencesKey("enable_analytics")
     }
 
     // --- READ ---
@@ -62,6 +63,16 @@ class PreferencesManager @Inject constructor(
     suspend fun setMuteMediaVolume(mute: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_MUTE_MEDIA_VOLUME] = mute
+        }
+    }
+
+    val enableAnalyticsFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_ENABLE_ANALYTICS] ?: true
+    }
+
+    suspend fun setAnalyticsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_ENABLE_ANALYTICS] = enabled
         }
     }
 }

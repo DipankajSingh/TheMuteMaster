@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { FaAndroid } from "react-icons/fa";
-import { SiGoogleplay } from "react-icons/si";
+import { SiGoogleplay, SiHuawei } from "react-icons/si";
 
 export function HeroSection() {
   const { scrollYProgress } = useScroll();
@@ -50,17 +50,27 @@ export function HeroSection() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.5 }}
-          className="flex flex-col sm:flex-row gap-6 w-full justify-center px-4"
+          className="flex flex-col sm:flex-row gap-4 md:gap-6 w-full justify-center px-4"
         >
           <a
             href="https://play.google.com/store/apps/details?id=com.dipdev.themutemaster&pcampaignid=web_share"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center justify-center gap-3 bg-primary text-white font-semibold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 rounded-full shadow-[0_8px_30px_-6px_rgba(240,81,35,0.6)] hover:bg-primary-container transition-all transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full sm:w-auto"
+            className="group relative inline-flex items-center justify-center gap-3 bg-primary text-white font-semibold text-lg md:text-xl px-6 py-4 md:px-8 md:py-5 rounded-full shadow-[0_8px_30px_-6px_rgba(240,81,35,0.6)] hover:bg-primary-container transition-all transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full sm:w-auto"
           >
             <div className="absolute inset-0 w-full h-full bg-white/20 -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
-            <SiGoogleplay className="w-6 h-6 relative z-10" />
-            <span className="relative z-10">Get it on Google Play</span>
+            <SiGoogleplay className="w-5 h-5 md:w-6 md:h-6 relative z-10" />
+            <span className="relative z-10">Google Play</span>
+          </a>
+          <a
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative inline-flex items-center justify-center gap-3 bg-[#cf0a2c] text-white font-semibold text-lg md:text-xl px-6 py-4 md:px-8 md:py-5 rounded-full shadow-[0_8px_30px_-6px_rgba(207,10,44,0.6)] hover:bg-red-700 transition-all transform hover:-translate-y-1 active:scale-95 overflow-hidden w-full sm:w-auto"
+          >
+            <div className="absolute inset-0 w-full h-full bg-white/20 -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+            <SiHuawei className="w-5 h-5 md:w-6 md:h-6 relative z-10" />
+            <span className="relative z-10">AppGallery</span>
           </a>
         </motion.div>
       </motion.div>
