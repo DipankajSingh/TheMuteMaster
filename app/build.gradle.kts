@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId = "com.dipdev.themutemaster"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 8
         versionName = "1.8"
 

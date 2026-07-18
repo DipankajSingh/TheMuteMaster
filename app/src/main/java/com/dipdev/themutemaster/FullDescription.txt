@@ -1,0 +1,64 @@
+Never be caught with your ringer on again. MuteMaster automatically silences your phone the moment you arrive at any location — office, classroom, cinema, hospital — and restores your volume the instant you leave. No tapping. No forgetting. No embarrassment.
+
+SET IT ONCE. RUNS FOREVER.
+
+Save your current location, set your radius, and MuteMaster handles everything in the background. Walk into your workplace — phone goes silent. Walk out — volume restored. Completely automatic, every single day, without a single manual step. Perfect for anyone tired of scrambling to mute their phone at the wrong moment.
+
+🔑 KEY FEATURES
+
+📍 GPS Geofence Auto Mute
+Create unlimited custom silent zones using your current location. Your phone automatically mutes on entry and un-mutes on exit — fast and reliable even indoors, using GPS, cell towers, and Wi-Fi combined for accurate detection.
+
+⏰ Time + Location Scheduling
+Layer time conditions on top of any zone. Mute only at work on weekdays 9AM–6PM. Zones won't activate on weekends or outside set hours, even if you're physically inside the area.
+
+🔕 Full Volume Control Per Zone
+Independently control ringer, notification, and media volume per location. Choose vibrate-only, fully silent, media-mute only, or any custom combination that fits each environment perfectly.
+
+🔋 Ultra-Low Battery Usage
+Uses Android's native Geofencing API — not continuous GPS polling. Runs reliably all day in the background with virtually no battery impact compared to navigation or location tracking apps.
+
+🛡️ 100% Private Location Processing
+No account required. All zone data and location coordinates stay strictly on your device and are processed 100% locally. While your location data is never shared, the app optionally collects anonymized usage analytics to help us improve (which you can disable at any time).
+
+PERFECT FOR EVERY SITUATION
+
+✅ Students & Teachers — auto-mute on campus, in class, or the library. Never disrupt a lecture, exam, or study session again.
+✅ Office Workers — phone goes silent during work hours and returns to full volume after. Meetings stay interruption-free.
+✅ Healthcare Staff — automatic quiet mode activates at hospitals and clinics every shift, no manual steps needed.
+✅ Cinema & Theater — never be the person whose phone rings mid-movie. Save the location once and forget it forever.
+✅ Home Sleep Mode — combine your home location with a nightly time schedule for guaranteed quiet hours every night.
+✅ Religious & Formal Venues — set silent zones at places of worship, courtrooms, or conference halls you visit regularly.
+
+HOW IT WORKS
+1. Go to the location you want to mute
+2. Tap + to detect and save your current location
+3. Adjust the geofence radius
+4. Choose your volume profile (silent, vibrate, media mute, custom)
+5. Add optional time conditions (weekdays only, 9AM–5PM, etc.)
+6. Save — done. MuteMaster runs quietly in the background forever.
+
+⚠️ SAMSUNG / XIAOMI / ONEPLUS / REALME / VIVO USERS
+These devices use aggressive battery savers that can interrupt background services. For reliable geofencing:
+→ Settings → Apps → MuteMaster → Battery → Set to Unrestricted
+→ Enable Autostart or Background Activity if your device offers it
+This one-time setup ensures every location trigger fires without fail.
+
+FAQ
+
+Does it restore my volume when I leave a zone?
+Yes — automatically restored the moment your device exits the geofence radius.
+
+Will it drain my battery?
+No. It uses Android's own optimized sensor-fusion geofencing — not active GPS polling.
+
+Can I mute only media without silencing calls?
+Yes. Each zone gives you independent control over ringer, notification, and media channels.
+
+How many zones can I create?
+Unlimited. Work, campus, gym, cinema, home, client offices — add as many locations as you need.
+
+Is my location data shared with anyone?
+Never. Location processing is 100% local. No servers or location tracking. We only optionally collect anonymized app usage analytics, which you can disable in settings at any time.
+
+Download MuteMaster — take control of your phone's audio and never manually mute again.
